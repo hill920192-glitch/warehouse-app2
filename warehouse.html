@@ -3,666 +3,410 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>倉庫記錄</title>
+<title>個人記錄倉庫</title>
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f7f7f8;color:#111}
-.wrap{max-width:980px;margin:0 auto;padding:12px}
-.grid{display:grid;grid-template-columns:1fr;gap:12px}
-.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
-.title{font-weight:700;font-size:18px;margin-bottom:8px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.group{display:flex;flex-direction:column;gap:6px;min-width:140px}
-label{font-size:13px}
-input[type="text"],input[type="date"],select,textarea{padding:8px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff}
-textarea{min-height:80px;white-space:pre-wrap}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f6f7f9;color:#222}
+.container{max-width:1100px;margin:24px auto;padding:0 16px}
+h1{font-size:24px;margin:0 0 12px}
+h2{font-size:18px;margin:24px 0 8px}
+.toolbar{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+.search{display:flex;gap:8px}
+input[type="text"],input[type="date"]{padding:8px;border:1px solid #ccd3db;border-radius:6px;background:#fff;min-width:240px}
+button{padding:8px 12px;border:1px solid #ccd3db;border-radius:6px;background:#fff;cursor:pointer}
+button:hover{background:#f0f2f5}
+.group-label{font-size:12px;color:#555;margin-bottom:4px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{border:1px solid #ccc;border-radius:999px;padding:8px 12px;background:#fafafa;cursor:pointer}
-.btn{padding:10px 14px;border-radius:8px;border:1px solid #333;background:#111;color:#fff;cursor:pointer}
-.btn.secondary{background:#fff;color:#111;border:1px solid #888}
-.btn.warn{background:#b00020;border-color:#b00020}
-.list{display:grid;grid-template-columns:1fr;gap:8px}
-.item{background:#fff;border:1px solid #e2e2e2;border-radius:10px;padding:10px}
-.item-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.item-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.tag{font-size:12px;border:1px solid #ccc;border-radius:999px;padding:4px 8px;background:#fafafa}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8}
-.stat{background:#fff;border:1px solid #e2e2e2;border-radius:10px;padding:10px}
-.hidden{display:none !important}
-#editModal{display:flex;align-items:center;justify-content:center}
-@media (max-width:640px){
- .row{flex-direction:column}
- .stat-grid{grid-template-columns:1fr}
-}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #ccd3db;border-radius:999px;background:#fff;color:#333;cursor:pointer}
+.chip.selected{background:#2563eb;color:#fff;border-color:#2563eb}
+.chip.secondary{background:#eef2ff;border-color:#c7d2fe}
+.count{display:inline-block;min-width:22px;padding:2px 6px;border-radius:999px;background:#e5e7eb;color:#333;font-size:12px}
+.chip.selected .count{background:#1e3a8a;color:#fff}
+.form-section,.alerts,.list-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+.form-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.form-row label{width:110px}
+.form-actions{display:flex;gap:10px;margin-top:8px}
+.overdue-summary{display:flex;flex-direction:column;gap:6px}
+.overdue-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5;font-size:12px}
+.list{width:100%;border-collapse:collapse}
+.list th,.list td{border-bottom:1px solid #eee;padding:8px;text-align:left;vertical-align:top}
+.list thead th{background:#f9fafb}
+.status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid}
+.status-ok{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.status-overdue{background:#fee2e2;color:#7f1d1d;border-color:#fecaca}
+.list-info{font-size:12px;color:#555;margin-bottom:8px}
+.toolbar .location-filter{flex:1}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="grid">
-    <div class="card">
-      <div class="title">新增記錄</div>
-      <div class="row">
-        <div class="group">
-          <label>物品名稱</label>
-          <input id="nameInput" type="text" placeholder="輸入名稱">
-        </div>
-        <div class="group">
-          <label>種類</label>
-          <div class="chips" id="typeChips"></div>
-        </div>
-        <div class="group">
-          <label>地點</label>
-          <div class="chips" id="locationChips"></div>
-        </div>
-        <div class="group" id="turnGoDateContainer" style="display:none">
-          <label>轉走日期</label>
-          <input type="date" id="turnGoDateInput" disabled>
-        </div>
-        <div class="group">
-          <label>部門</label>
-          <div class="chips" id="deptChips"></div>
-        </div>
-        <div class="group">
-          <label>型號</label>
-          <div class="chips" id="modelChips"></div>
-        </div>
-        <div class="group">
-          <label>車身</label>
-          <div class="chips" id="carBodyChips"></div>
-        </div>
-        <div class="group">
-          <label>保養</label>
-          <div class="chips" id="maintainChips"></div>
-        </div>
-        <div class="group">
-          <label>來源（選填）</label>
-          <div class="chips" id="sourceChips"></div>
-        </div>
-        <div class="group">
-          <label>JOB NO（選填）</label>
-          <input id="jobInput" type="text" placeholder="輸入編號">
-        </div>
-        <div class="group" style="flex:1">
-          <label>備註</label>
-          <textarea id="noteInput" placeholder="可手動分行"></textarea>
-        </div>
-        <div class="group" style="flex:1">
-          <label>物品狀況（可複選）</label>
-          <div id="addStatusChecks"></div>
-        </div>
-      </div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn" id="addBtn">加入</button>
-        <button class="btn secondary" id="clearBtn">清空</button>
-      </div>
+<div class="container">
+  <h1>個人記錄倉庫</h1>
+  <section class="toolbar">
+    <div class="search">
+      <input id="searchInput" type="text" placeholder="以物品名稱搜尋">
+      <button id="clearSearch">清除</button>
     </div>
-
-    <div class="card">
-      <div class="title">搜尋與篩選</div>
-      <div class="row">
-        <div class="group">
-          <label>名稱關鍵字</label>
-          <input id="searchName" type="text" placeholder="例：引擎">
-        </div>
-        <div class="group">
-          <label>地點</label>
-          <select id="filterLocation">
-            <option value="">全部</option>
-            <option>場</option>
-            <option>走</option>
-            <option>外判</option>
-          </select>
-        </div>
-        <div class="group">
-          <label>來源</label>
-          <select id="filterSource">
-            <option value="">全部</option>
-          </select>
-        </div>
-        <div class="group">
-          <label>轉走日期查詢</label>
-          <input id="filterTurnGoDate" type="date">
-        </div>
+    <div class="location-filter">
+      <div class="group-label">地點篩選</div>
+      <div class="chips" id="locationFilter">
+        <button class="chip" data-value="場">場<span class="count" data-count="場">0</span></button>
+        <button class="chip" data-value="走">走<span class="count" data-count="走">0</span></button>
+        <button class="chip" data-value="外判">外判<span class="count" data-count="外判">0</span></button>
+        <button class="chip secondary" data-value="">全部</button>
       </div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn" id="applyFilter">套用</button>
-        <button class="btn secondary" id="resetFilter">重置</button>
-      </div>
+      <div class="filter-summary" id="filterSummary"></div>
     </div>
+  </section>
 
-    <div class="card">
-      <div class="title">批量編輯</div>
-      <div class="row">
-        <div class="group">
-          <label>選擇地點</label>
-          <div class="chips" id="batchLocationChips"></div>
-        </div>
-        <div class="group">
-          <label>選擇部門</label>
-          <div class="chips" id="batchDeptChips"></div>
-        </div>
-        <div class="group">
-          <label>選擇種類</label>
-          <div class="chips" id="batchTypeChips"></div>
-        </div>
-        <div class="group" id="batchTurnGoContainer" style="display:none">
-          <label>批量轉走日期</label>
-          <input type="date" id="batchTurnGoInput" disabled>
-        </div>
-      </div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn" id="applyBatch">套用到已勾選</button>
-        <button class="btn secondary" id="clearBatch">清空選擇</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="title">目前統計</div>
-      <div class="stat-grid">
-        <div class="stat"><div>場數量</div><div id="stat-yard" class="title">0</div></div>
-        <div class="stat"><div>走數量</div><div id="stat-go" class="title">0</div></div>
-        <div class="stat"><div>外判數量</div><div id="stat-out" class="title">0</div></div>
-      </div>
-      <div style="margin-top:8px">
-        <div>場-技術部</div>
-        <div id="stat-yard-tech" class="title">0</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="title">清單</div>
-      <div class="controls" style="margin-bottom:8px">
-        <button class="btn secondary" id="selectAllBtn">全選</button>
-        <button class="btn secondary" id="unselectAllBtn">全不選</button>
-        <button class="btn warn" id="deleteSelectedBtn">刪除已勾選</button>
-      </div>
-      <div class="list" id="itemList"></div>
-    </div>
-  </div>
-</div>
-
-<template id="itemRowTpl">
-  <div class="item">
-    <div class="item-head">
-      <div>
-        <input type="checkbox" class="select-item">
-        <span class="item-name"></span>
-      </div>
-      <div class="controls">
-        <button class="btn secondary btn-edit">編輯</button>
-      </div>
-    </div>
-    <div class="item-tags"></div>
-    <div class="item-note"></div>
-  </div>
-</template>
-
-<div id="editModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.35)">
-  <div class="card" style="width:min(640px,95vw)">
-    <div class="title">編輯記錄</div>
-    <div class="row">
-      <div class="group">
+  <section class="form-section">
+    <h2>新增記錄</h2>
+    <form id="recordForm">
+      <div class="form-row">
         <label>物品名稱</label>
-        <input id="editName" type="text">
+        <input id="nameInput" type="text" required placeholder="輸入物品名稱">
       </div>
-      <div class="group">
-        <label>種類</label>
-        <div class="chips" id="editTypeChips"></div>
+      <div class="form-row">
+        <label>入庫日期</label>
+        <input id="dateInput" type="date" required>
       </div>
-      <div class="group">
+      <div class="form-row">
+        <label>JOB NO. (可選)</label>
+        <input id="jobInput" type="text" placeholder="可留空">
+      </div>
+      <div class="form-row">
+        <label>物品狀況 (可多選)</label>
+        <div class="chips multi" id="conditionChips"></div>
+      </div>
+      <div class="form-row">
         <label>地點</label>
-        <div class="chips" id="editLocationChips"></div>
+        <div class="chips single" id="locationChips"></div>
       </div>
-      <div class="group" id="editTurnGoDateContainer" style="display:none">
-        <label>轉走日期</label>
-        <input type="date" id="editTurnGoDateInput" disabled>
+      <div class="form-row">
+        <label>種類</label>
+        <div class="chips single" id="typeChips"></div>
       </div>
-      <div class="group">
+      <div class="form-row">
         <label>部門</label>
-        <div class="chips" id="editDeptChips"></div>
+        <div class="chips single" id="departmentChips"></div>
       </div>
-      <div class="group">
-        <label>型號</label>
-        <div class="chips" id="editModelChips"></div>
-      </div>
-      <div class="group">
+      <div class="form-row">
         <label>車身</label>
-        <div class="chips" id="editCarBodyChips"></div>
+        <div class="chips single" id="bodyChips"></div>
       </div>
-      <div class="group">
+      <div class="form-row">
+        <label>來源 (可選)</label>
+        <div class="chips single optional" id="sourceChips"></div>
+      </div>
+      <div class="form-row">
+        <label>型號</label>
+        <div class="chips single" id="modelChips"></div>
+      </div>
+      <div class="form-row">
         <label>保養</label>
-        <div class="chips" id="editMaintainChips"></div>
+        <div class="chips single" id="maintenanceChips"></div>
       </div>
-      <div class="group">
-        <label>來源（選填）</label>
-        <div class="chips" id="editSourceChips"></div>
+      <div class="form-actions">
+        <button type="submit">新增</button>
+        <button type="reset" id="resetForm">重設</button>
       </div>
-      <div class="group">
-        <label>JOB NO（選填）</label>
-        <input id="editJob" type="text">
-      </div>
-      <div class="group" style="flex:1">
-        <label>備註</label>
-        <textarea id="editNote"></textarea>
-      </div>
-      <div class="group">
-        <label>物品狀況（可複選）</label>
-        <div id="editStatusChecks"></div>
-      </div>
-    </div>
-    <div class="controls" style="margin-top:8px">
-      <button class="btn" id="saveEditBtn">儲存</button>
-      <button class="btn secondary" id="cancelEditBtn">取消</button>
-    </div>
-  </div>
+    </form>
+  </section>
+
+  <section class="alerts">
+    <h2>逾期提醒</h2>
+    <div id="overdueSummary" class="overdue-summary"></div>
+  </section>
+
+  <section class="list-section">
+    <h2>目前紀錄</h2>
+    <div id="listInfo" class="list-info"></div>
+    <table class="list" id="recordsTable">
+      <thead>
+        <tr>
+          <th>物品名稱</th>
+          <th>入庫日期</th>
+          <th>地點</th>
+          <th>種類</th>
+          <th>部門</th>
+          <th>狀況</th>
+          <th>車身</th>
+          <th>來源</th>
+          <th>型號</th>
+          <th>保養</th>
+          <th>JOB</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+  </section>
 </div>
-
 <script>
-const TYPES=["垃圾車(大)","垃圾車(細)","巴士仔","TGE","其他"]
-const LOCATIONS=["場","走","外判"]
-const DEPTS=["機電","食環","懲教","海關","警察","消防"]
-const MODELS=["TG2","TG3","其他"]
-const CAR_BODIES=["MAN","新力","其他"]
-const MAINTAINS=["MAN","報價"]
-const SOURCES=["九龍灣","大埇","威菲","南昌","屯門","葵涌","東涌","其他"]
-const STATUSES=["技術部","機修","電器","車身","等零件","等外判"]
+const OPTIONS={
+  condition:['技術部','機修','電器','車身','等零件','等外判'],
+  location:['場','走','外判'],
+  type:['垃圾車(大)','垃圾車(細)','巴士仔','TGE','其他'],
+  department:['機電','食環','懲教','海關','警察','消防'],
+  body:['MAN','新力','其他'],
+  source:['九龍灣','大埔','威菲','南昌','屯門','葵涌','東涌','其他'],
+  model:['TG2','TG3','其他'],
+  maintenance:['MAN','報價']
+};
 
-function todayStr(){
-  const d=new Date()
-  const m=String(d.getMonth()+1).padStart(2,"0")
-  const day=String(d.getDate()).padStart(2,"0")
-  return `${d.getFullYear()}-${m}-${day}`
+const STORAGE_KEY='recordApp.records';
+
+function loadRecords(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw) return [];
+  try{ return JSON.parse(raw)||[] }catch(e){ return [] }
 }
 
-function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
-
-function loadItems(){
-  try{
-    const raw=localStorage.getItem("warehouse_items")
-    return raw?JSON.parse(raw):[]
-  }catch(e){return []}
-}
-function saveItems(items){
-  localStorage.setItem("warehouse_items",JSON.stringify(items))
+function saveRecords(list){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(list));
 }
 
-function chipGroup(container,options,selected,onSelect){
-  container.innerHTML=""
-  options.forEach(opt=>{
-    const b=document.createElement("button")
-    b.type="button"
-    b.className="chip"
-    b.textContent=opt
-    if(selected && selected===opt){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
-    b.addEventListener("click",()=>{
-      onSelect(opt)
-      Array.from(container.querySelectorAll(".chip")).forEach(el=>{
-        el.style.background="#fafafa"
-        el.style.borderColor="#ccc"
-      })
-      b.style.background="#e6f4ea"
-      b.style.borderColor="#3c7"
-    })
-    container.appendChild(b)
-  })
+function todayISO(){
+  const d=new Date();
+  d.setHours(0,0,0,0);
+  return d.toISOString().split('T')[0];
 }
 
-let addState={
-  type:null,
-  location:null,
-  dept:null,
-  model:null,
-  carBody:null,
-  maintain:null,
-  source:null,
-  statuses:[]
+function parseISO(s){
+  const parts=s.split('-').map(Number);
+  return new Date(parts[0],parts[1]-1,parts[2]);
 }
 
-function renderAddForm(){
-  chipGroup(document.getElementById("typeChips"),TYPES,addState.type,(v)=>{addState.type=v})
-  chipGroup(document.getElementById("locationChips"),LOCATIONS,addState.location,(v)=>{addState.location=v;toggleTurnGoDateAdd()})
-  chipGroup(document.getElementById("deptChips"),DEPTS,addState.dept,(v)=>{addState.dept=v})
-  chipGroup(document.getElementById("modelChips"),MODELS,addState.model,(v)=>{addState.model=v})
-  chipGroup(document.getElementById("carBodyChips"),CAR_BODIES,addState.carBody,(v)=>{addState.carBody=v})
-  chipGroup(document.getElementById("maintainChips"),MAINTAINS,addState.maintain,(v)=>{addState.maintain=v})
-  chipGroup(document.getElementById("sourceChips"),SOURCES,addState.source,(v)=>{addState.source=v})
-  renderAddStatuses()
-}
-function renderAddStatuses(){
-  const wrap=document.getElementById("addStatusChecks")
-  wrap.innerHTML=""
-  STATUSES.forEach(s=>{
-    const b=document.createElement("button")
-    b.type="button"
-    b.className="chip"
-    b.textContent=s
-    const sel=addState.statuses.includes(s)
-    if(sel){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
-    b.addEventListener("click",()=>{
-      const i=addState.statuses.indexOf(s)
-      if(i>=0) addState.statuses.splice(i,1); else addState.statuses.push(s)
-      renderAddStatuses()
-    })
-    wrap.appendChild(b)
-  })
+function daysBetween(a,b){
+  const ms=Math.abs(a.getTime()-b.getTime());
+  return Math.floor(ms/86400000);
 }
 
-function toggleTurnGoDateAdd(){
-  const container=document.getElementById("turnGoDateContainer")
-  const input=document.getElementById("turnGoDateInput")
-  const show=addState.location==="走"
-  container.style.display=show?"block":"none"
-  input.disabled=!show
-  if(!show){input.value=""}
+function isOverdue(rec){
+  const d=parseISO(rec.entryDate);
+  const t=new Date(); t.setHours(0,0,0,0);
+  return daysBetween(d,t)>10;
 }
 
-function clearAddForm(){
-  document.getElementById("nameInput").value=""
-  document.getElementById("jobInput").value=""
-  document.getElementById("noteInput").value=""
-  document.getElementById("turnGoDateInput").value=""
-  addState={type:null,location:null,dept:null,model:null,carBody:null,maintain:null,source:null,statuses:[]}
-  renderAddForm()
-  toggleTurnGoDateAdd()
-}
+const state={
+  records:loadRecords(),
+  filters:{ search:'', location:'' }
+};
 
-function addItem(){
-  const name=document.getElementById("nameInput").value.trim()
-  const job=document.getElementById("jobInput").value.trim()
-  const note=document.getElementById("noteInput").value
-  const turnInput=document.getElementById("turnGoDateInput").value
-  if(!name) return
-  const items=loadItems()
-  const location=addState.location||""
-  const turnGoDate=location==="走"?(turnInput||todayStr()):null
-  const item={
-    id:uid(),
-    name,
-    type:addState.type||"",
-    location,
-    dept:addState.dept||"",
-    model:addState.model||"",
-    carBody:addState.carBody||"",
-    maintain:addState.maintain||"",
-    source:addState.source||"",
-    job:job||"",
-    note,
-    statuses:addState.statuses||[],
-    createdDate:todayStr(),
-    turnGoDate
+function renderChips(containerId, items, mode){
+  const el=document.getElementById(containerId);
+  el.innerHTML='';
+  items.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='chip';
+    b.textContent=v;
+    b.dataset.value=v;
+    b.addEventListener('click',()=>{
+      if(mode==='multi'){
+        b.classList.toggle('selected');
+      }else{
+        [...el.querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected'));
+        if(!b.classList.contains('selected')) b.classList.add('selected');
+        else b.classList.remove('selected');
+      }
+    });
+    el.appendChild(b);
+  });
+  if(mode==='single' && el.classList.contains('optional')){
+    const none=document.createElement('button');
+    none.className='chip secondary';
+    none.textContent='不選';
+    none.dataset.value='';
+    none.addEventListener('click',()=>{
+      [...el.querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected'));
+    });
+    el.appendChild(none);
   }
-  items.push(item)
-  saveItems(items)
-  clearAddForm()
-  renderList()
-  renderStats()
 }
 
-function renderFilterSources(){
-  const sel=document.getElementById("filterSource")
-  sel.innerHTML=""
-  const optAll=document.createElement("option");optAll.value="";optAll.textContent="全部";sel.appendChild(optAll)
-  SOURCES.forEach(s=>{const o=document.createElement("option");o.textContent=s;sel.appendChild(o)})
+function getSelectedValues(containerId, mode){
+  const el=document.getElementById(containerId);
+  const selected=[...el.querySelectorAll('.chip.selected')].map(x=>x.dataset.value);
+  if(mode==='multi') return selected;
+  return selected[0]||'';
 }
 
-let filters={name:"",location:"",source:"",turnGoDate:""}
-function applyFilters(){
-  filters.name=document.getElementById("searchName").value.trim()
-  filters.location=document.getElementById("filterLocation").value
-  filters.source=document.getElementById("filterSource").value
-  filters.turnGoDate=document.getElementById("filterTurnGoDate").value
-  renderList()
-}
-function resetFilters(){
-  document.getElementById("searchName").value=""
-  document.getElementById("filterLocation").value=""
-  document.getElementById("filterSource").value=""
-  document.getElementById("filterTurnGoDate").value=""
-  applyFilters()
+function setupForm(){
+  renderChips('conditionChips',OPTIONS.condition,'multi');
+  renderChips('locationChips',OPTIONS.location,'single');
+  renderChips('typeChips',OPTIONS.type,'single');
+  renderChips('departmentChips',OPTIONS.department,'single');
+  renderChips('bodyChips',OPTIONS.body,'single');
+  renderChips('sourceChips',OPTIONS.source,'single');
+  document.getElementById('sourceChips').classList.add('optional');
+  renderChips('modelChips',OPTIONS.model,'single');
+  renderChips('maintenanceChips',OPTIONS.maintenance,'single');
+
+  const dateInput=document.getElementById('dateInput');
+  dateInput.value=todayISO();
+
+  const form=document.getElementById('recordForm');
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=document.getElementById('nameInput').value.trim();
+    const entryDate=document.getElementById('dateInput').value;
+    const job=document.getElementById('jobInput').value.trim();
+    const condition=getSelectedValues('conditionChips','multi');
+    const location=getSelectedValues('locationChips','single');
+    const type=getSelectedValues('typeChips','single');
+    const department=getSelectedValues('departmentChips','single');
+    const body=getSelectedValues('bodyChips','single');
+    const source=getSelectedValues('sourceChips','single');
+    const model=getSelectedValues('modelChips','single');
+    const maintenance=getSelectedValues('maintenanceChips','single');
+    if(!name||!entryDate||!location||!type||!department||!body||!model||!maintenance){
+      alert('請完成必填選項');
+      return;
+    }
+    const rec={
+      id:Date.now(),
+      name,
+      entryDate,
+      jobNo:job,
+      condition,
+      location,
+      type,
+      department,
+      body,
+      source,
+      model,
+      maintenance
+    };
+    state.records.push(rec);
+    saveRecords(state.records);
+    form.reset();
+    document.getElementById('dateInput').value=todayISO();
+    renderCounts();
+    renderOverdue();
+    renderList();
+  });
+
+  document.getElementById('resetForm').addEventListener('click',()=>{
+    document.getElementById('dateInput').value=todayISO();
+    ['conditionChips','locationChips','typeChips','departmentChips','bodyChips','sourceChips','modelChips','maintenanceChips']
+      .forEach(id=>[...document.getElementById(id).querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected')));
+  });
 }
 
-function itemMatches(item){
-  if(filters.name && !item.name.includes(filters.name)) return false
-  if(filters.location && item.location!==filters.location) return false
-  if(filters.source && item.source!==filters.source) return false
-  if(filters.turnGoDate && item.turnGoDate!==filters.turnGoDate) return false
-  return true
+function renderCounts(){
+  const counts={};
+  OPTIONS.location.forEach(l=>counts[l]=0);
+  state.records.forEach(r=>{ if(counts[r.location]!=null) counts[r.location]++ });
+  const lf=document.getElementById('locationFilter');
+  ['場','走','外判'].forEach(l=>{
+    const btn=[...lf.querySelectorAll('.chip')].find(x=>x.dataset.value===l);
+    const span=btn.querySelector(`[data-count="${l}"]`);
+    if(span) span.textContent=counts[l]||0;
+  });
+}
+
+function renderOverdue(){
+  const list=state.records.filter(isOverdue);
+  const box=document.getElementById('overdueSummary');
+  box.innerHTML='';
+  if(list.length===0){
+    const d=document.createElement('div');
+    d.textContent='沒有逾期項目';
+    box.appendChild(d);
+    return;
+  }
+  const t=new Date(); t.setHours(0,0,0,0);
+  list.forEach(r=>{
+    const d=parseISO(r.entryDate);
+    const days=daysBetween(d,t);
+    const item=document.createElement('div');
+    item.innerHTML=`<span class="overdue-badge">逾期 ${days} 天</span> ${r.name}（${r.location}，${r.entryDate}）`;
+    box.appendChild(item);
+  });
 }
 
 function renderList(){
-  const list=document.getElementById("itemList")
-  list.innerHTML=""
-  const items=loadItems().filter(itemMatches).sort((a,b)=>{
-    const da=a.createdDate||""
-    const db=b.createdDate||""
-    return da.localeCompare(db)
-  })
-  items.forEach(item=>{
-    const tpl=document.getElementById("itemRowTpl").content.cloneNode(true)
-    const root=tpl.querySelector(".item")
-    const cb=root.querySelector(".select-item")
-    cb.dataset.id=item.id
-    root.querySelector(".item-name").textContent=item.name
-    const tags=root.querySelector(".item-tags")
-    const tagTexts=[
-      item.type?`種類:${item.type}`:"",
-      item.location?`地點:${item.location}`:"",
-      item.dept?`部門:${item.dept}`:"",
-      item.model?`型號:${item.model}`:"",
-      item.carBody?`車身:${item.carBody}`:"",
-      item.maintain?`保養:${item.maintain}`:"",
-      item.source?`來源:${item.source}`:"",
-      item.job?`JOB:${item.job}`:"",
-      item.statuses?.length?`狀況:${item.statuses.join("、")}`:""
-    ].filter(Boolean)
-    tagTexts.forEach(t=>{
-      const span=document.createElement("span")
-      span.className="tag"
-      span.textContent=t
-      tags.appendChild(span)
-    })
-    if(item.location==="走" && item.turnGoDate){
-      const span=document.createElement("span")
-      span.className="tag"
-      span.textContent=`轉走日期:${item.turnGoDate}`
-      tags.appendChild(span)
-    }
-    const note=root.querySelector(".item-note")
-    note.textContent=item.note||""
-    const editBtn=root.querySelector(".btn-edit")
-    editBtn.addEventListener("click",()=>openEdit(item.id))
-    list.appendChild(tpl)
-  })
-}
-
-function renderStats(){
-  const items=loadItems()
-  const yard=items.filter(i=>i.location==="場").length
-  const go=items.filter(i=>i.location==="走").length
-  const out=items.filter(i=>i.location==="外判").length
-  document.getElementById("stat-yard").textContent=yard
-  document.getElementById("stat-go").textContent=go
-  document.getElementById("stat-out").textContent=out
-  const yardTech=items.filter(i=>i.location==="場" && i.statuses?.includes("技術部")).length
-  document.getElementById("stat-yard-tech").textContent=yardTech
-}
-
-function selectedIds(){
-  return Array.from(document.querySelectorAll(".select-item"))
-    .filter(el=>el.checked)
-    .map(el=>el.dataset.id)
-}
-
-let batchState={location:null,dept:null,type:null,turnGoDate:null}
-function renderBatch(){
-  chipGroup(document.getElementById("batchLocationChips"),LOCATIONS,batchState.location,(v)=>{batchState.location=v;toggleBatchTurnGo()})
-  chipGroup(document.getElementById("batchDeptChips"),DEPTS,batchState.dept,(v)=>{batchState.dept=v})
-  chipGroup(document.getElementById("batchTypeChips"),TYPES,batchState.type,(v)=>{batchState.type=v})
-}
-function toggleBatchTurnGo(){
-  const container=document.getElementById("batchTurnGoContainer")
-  const input=document.getElementById("batchTurnGoInput")
-  const show=batchState.location==="走"
-  container.style.display=show?"block":"none"
-  input.disabled=!show
-  if(!show){input.value="";batchState.turnGoDate=null}else{batchState.turnGoDate=input.value||todayStr()}
-}
-document.getElementById("batchTurnGoInput").addEventListener("change",e=>{
-  batchState.turnGoDate=e.target.value||todayStr()
-})
-function clearBatch(){
-  batchState={location:null,dept:null,type:null,turnGoDate:null}
-  renderBatch()
-  toggleBatchTurnGo()
-  document.querySelectorAll(".select-item").forEach(el=>el.checked=false)
-}
-function applyBatch(){
-  const ids=selectedIds()
-  if(!ids.length) return
-  const items=loadItems()
-  const turn=batchState.location==="走"? (batchState.turnGoDate||todayStr()) : null
-  const next=items.map(it=>{
-    if(!ids.includes(it.id)) return it
-    return {
-      ...it,
-      location: batchState.location ?? it.location,
-      dept: batchState.dept ?? it.dept,
-      type: batchState.type ?? it.type,
-      turnGoDate: (batchState.location ?? it.location)==="走" ? (turn ?? it.turnGoDate ?? todayStr()) : null
-    }
-  })
-  saveItems(next)
-  renderList()
-  renderStats()
-}
-
-let editId=null
-let editState={type:null,location:null,dept:null,model:null,carBody:null,maintain:null,source:null,statuses:[]}
-function openEdit(id){
-  const items=loadItems()
-  const item=items.find(i=>i.id===id)
-  if(!item) return
-  editId=id
-  document.getElementById("editName").value=item.name
-  document.getElementById("editJob").value=item.job||""
-  document.getElementById("editNote").value=item.note||""
-  document.getElementById("editTurnGoDateInput").value=item.turnGoDate||""
-  editState={
-    type:item.type||null,
-    location:item.location||null,
-    dept:item.dept||null,
-    model:item.model||null,
-    carBody:item.carBody||null,
-    maintain:item.maintain||null,
-    source:item.source||null,
-    statuses:item.statuses||[]
+  const tbody=document.getElementById('recordsBody');
+  tbody.innerHTML='';
+  const search=state.filters.search.toLowerCase();
+  const loc=state.filters.location;
+  let list=state.records.filter(r=>r.name.toLowerCase().includes(search));
+  if(loc) list=list.filter(r=>r.location===loc);
+  list=list.slice();
+  if(loc){
+    list.sort((a,b)=>parseISO(a.entryDate)-parseISO(b.entryDate));
+  }else{
+    list.sort((a,b)=>parseISO(b.entryDate)-parseISO(a.entryDate));
   }
-  chipGroup(document.getElementById("editTypeChips"),TYPES,editState.type,(v)=>{editState.type=v})
-  chipGroup(document.getElementById("editLocationChips"),LOCATIONS,editState.location,(v)=>{editState.location=v;toggleEditTurnGo()})
-  chipGroup(document.getElementById("editDeptChips"),DEPTS,editState.dept,(v)=>{editState.dept=v})
-  chipGroup(document.getElementById("editModelChips"),MODELS,editState.model,(v)=>{editState.model=v})
-  chipGroup(document.getElementById("editCarBodyChips"),CAR_BODIES,editState.carBody,(v)=>{editState.carBody=v})
-  chipGroup(document.getElementById("editMaintainChips"),MAINTAINS,editState.maintain,(v)=>{editState.maintain=v})
-  chipGroup(document.getElementById("editSourceChips"),SOURCES,editState.source,(v)=>{editState.source=v})
-  renderEditStatuses()
-  toggleEditTurnGo()
-  document.getElementById("editModal").classList.remove("hidden")
-}
-function renderEditStatuses(){
-  const wrap=document.getElementById("editStatusChecks")
-  wrap.innerHTML=""
-  STATUSES.forEach(s=>{
-    const b=document.createElement("button")
-    b.type="button"
-    b.className="chip"
-    b.textContent=s
-    const sel=editState.statuses.includes(s)
-    if(sel){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
-    b.addEventListener("click",()=>{
-      const i=editState.statuses.indexOf(s)
-      if(i>=0) editState.statuses.splice(i,1); else editState.statuses.push(s)
-      renderEditStatuses()
-    })
-    wrap.appendChild(b)
-  })
-}
-function toggleEditTurnGo(){
-  const container=document.getElementById("editTurnGoDateContainer")
-  const input=document.getElementById("editTurnGoDateInput")
-  const show=editState.location==="走"
-  container.style.display=show?"block":"none"
-  input.disabled=!show
-  if(!show){input.value=""}
-}
-document.getElementById("cancelEditBtn").addEventListener("click",()=>{
-  document.getElementById("editModal").classList.add("hidden")
-  editId=null
-})
-document.getElementById("saveEditBtn").addEventListener("click",()=>{
-  if(!editId) return
-  const name=document.getElementById("editName").value.trim()
-  const job=document.getElementById("editJob").value.trim()
-  const note=document.getElementById("editNote").value
-  const turnInput=document.getElementById("editTurnGoDateInput").value
-  const items=loadItems()
-  const idx=items.findIndex(i=>i.id===editId)
-  if(idx<0) return
-  const loc=editState.location||""
-  const next={
-    ...items[idx],
-    name,
-    type:editState.type||"",
-    location:loc,
-    dept:editState.dept||"",
-    model:editState.model||"",
-    carBody:editState.carBody||"",
-    maintain:editState.maintain||"",
-    source:editState.source||"",
-    job:job||"",
-    note,
-    statuses:editState.statuses||[],
-    turnGoDate: loc==="走" ? (turnInput || items[idx].turnGoDate || todayStr()) : null
+  list.forEach(r=>{
+    const tr=document.createElement('tr');
+    const cond=r.condition.join('、');
+    const status=isOverdue(r)?'<span class="status-pill status-overdue">逾期</span>':'<span class="status-pill status-ok">正常</span>';
+    tr.innerHTML=`
+      <td>${r.name}</td>
+      <td>${r.entryDate}</td>
+      <td>${r.location}</td>
+      <td>${r.type}</td>
+      <td>${r.department}</td>
+      <td>${cond}</td>
+      <td>${r.body}</td>
+      <td>${r.source||''}</td>
+      <td>${r.model}</td>
+      <td>${r.maintenance}</td>
+      <td>${r.jobNo||''}</td>
+      <td>${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  const info=document.getElementById('listInfo');
+  if(loc){
+    const total=list.length;
+    const earliest=list[0]?list[0].entryDate:'—';
+    info.textContent=`地點：${loc}｜總數：${total}｜最早日期：${earliest}`;
+  }else{
+    info.textContent=`全部記錄：${list.length}`;
   }
-  items[idx]=next
-  saveItems(items)
-  document.getElementById("editModal").classList.add("hidden")
-  editId=null
-  renderList()
-  renderStats()
-})
+}
 
-document.getElementById("addBtn").addEventListener("click",addItem)
-document.getElementById("clearBtn").addEventListener("click",clearAddForm)
-document.getElementById("applyFilter").addEventListener("click",applyFilters)
-document.getElementById("resetFilter").addEventListener("click",resetFilters)
-document.getElementById("selectAllBtn").addEventListener("click",()=>document.querySelectorAll(".select-item").forEach(el=>el.checked=true))
-document.getElementById("unselectAllBtn").addEventListener("click",()=>document.querySelectorAll(".select-item").forEach(el=>el.checked=false))
-document.getElementById("deleteSelectedBtn").addEventListener("click",()=>{
-  const ids=selectedIds()
-  if(!ids.length) return
-  const items=loadItems().filter(it=>!ids.includes(it.id))
-  saveItems(items)
-  renderList()
-  renderStats()
-})
+function setupSearch(){
+  const input=document.getElementById('searchInput');
+  const clear=document.getElementById('clearSearch');
+  input.addEventListener('input',()=>{
+    state.filters.search=input.value||'';
+    renderList();
+  });
+  clear.addEventListener('click',()=>{
+    input.value='';
+    state.filters.search='';
+    renderList();
+  });
+}
 
-function purgeTestsOnce(){
-  const items=loadItems()
-  if(!items || !items.length) return
-  const next=items.filter(i=>i.name!=="測試A" && i.name!=="測試B")
-  if(next.length!==items.length) saveItems(next)
+function setupLocationFilter(){
+  const lf=document.getElementById('locationFilter');
+  lf.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const val=btn.dataset.value;
+      state.filters.location=val;
+      lf.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));
+      if(val) btn.classList.add('selected');
+      const summary=document.getElementById('filterSummary');
+      if(val) summary.textContent=`已選地點：${val}`;
+      else summary.textContent='';
+      renderList();
+    });
+  });
 }
 
 function init(){
-  purgeTestsOnce()
-  renderAddForm()
-  renderFilterSources()
-  renderBatch()
-  renderList()
-  renderStats()
-  toggleTurnGoDateAdd()
+  setupForm();
+  setupSearch();
+  setupLocationFilter();
+  renderCounts();
+  renderOverdue();
+  renderList();
 }
-document.addEventListener("DOMContentLoaded",init)
+
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
