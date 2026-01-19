@@ -197,6 +197,7 @@ function renderChips(containerId, items, mode){
   el.innerHTML='';
   items.forEach(v=>{
     const b=document.createElement('button');
+    b.type='button';
     b.className='chip';
     b.textContent=v;
     b.dataset.value=v;
@@ -213,6 +214,7 @@ function renderChips(containerId, items, mode){
   });
   if(mode==='single' && el.classList.contains('optional')){
     const none=document.createElement('button');
+    none.type='button';
     none.className='chip secondary';
     none.textContent='不選';
     none.dataset.value='';
