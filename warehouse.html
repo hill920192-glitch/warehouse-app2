@@ -7,11 +7,6 @@
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#f7f7f8;color:#111}
 .wrap{max-width:980px;margin:0 auto;padding:12px}
-.tabs{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:8px;display:flex;gap:8px;z-index:10}
-.tab-btn{padding:10px 14px;border-radius:8px;border:1px solid #333;background:#111;color:#fff;cursor:pointer}
-.tab-btn.secondary{background:#fff;color:#111;border:1px solid #888}
-.tab-btn.active{background:#0a7c2f;border-color:#0a7c2f}
-.page{display:none}
 .grid{display:grid;grid-template-columns:1fr;gap:12px}
 .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
 .title{font-weight:700;font-size:18px;margin-bottom:8px}
@@ -36,20 +31,6 @@ textarea{min-height:80px;white-space:pre-wrap}
 .hidden{display:none !important}
 #editModal{display:flex;align-items:center;justify-content:center}
 @media (max-width:640px){
-  #page-add .card{padding:18px}
-  #page-add .title{font-size:22px}
-  #page-add .row{flex-direction:column;gap:18px}
-  #page-add .group{width:100%;min-width:unset;gap:12px}
-  #page-add .group label{font-size:18px;font-weight:600;line-height:1.6}
-  #page-add .chips{gap:12px}
-  #page-add .chip{padding:12px 16px;font-size:16px}
-  #page-add input[type="text"],
-  #page-add input[type="date"],
-  #page-add select,
-  #page-add textarea{padding:14px 16px;font-size:16px;line-height:1.7}
-  #page-add .controls .btn{padding:12px 16px;font-size:16px}
-}
-@media (max-width:640px){
  .row{flex-direction:column}
  .stat-grid{grid-template-columns:1fr}
 }
@@ -57,161 +38,145 @@ textarea{min-height:80px;white-space:pre-wrap}
 </head>
 <body>
 <div class="wrap">
-  <div class="tabs">
-    <button class="tab-btn active" data-page="stats">目前統計</button>
-    <button class="tab-btn secondary" data-page="add">新增</button>
-    <button class="tab-btn secondary" data-page="search">搜尋</button>
-  </div>
-
-  <div id="page-stats" class="page" style="display:block">
-    <div class="grid">
-      <div class="card">
-        <div class="title">目前統計</div>
-        <div class="stat-grid">
-          <div class="stat"><div>場數量</div><div id="stat-yard" class="title">0</div></div>
-          <div class="stat"><div>走數量</div><div id="stat-go" class="title">0</div></div>
-          <div class="stat"><div>外判數量</div><div id="stat-out" class="title">0</div></div>
+  <div class="grid">
+    <div class="card">
+      <div class="title">新增記錄</div>
+      <div class="row">
+        <div class="group">
+          <label>物品名稱</label>
+          <input id="nameInput" type="text" placeholder="輸入名稱">
         </div>
-        <div style="margin-top:8px">
-          <div>場-技術部</div>
-          <div id="stat-yard-tech" class="title">0</div>
+        <div class="group">
+          <label>種類</label>
+          <div class="chips" id="typeChips"></div>
         </div>
+        <div class="group">
+          <label>地點</label>
+          <div class="chips" id="locationChips"></div>
+        </div>
+        <div class="group" id="turnGoDateContainer" style="display:none">
+          <label>轉走日期</label>
+          <input type="date" id="turnGoDateInput" disabled>
+        </div>
+        <div class="group">
+          <label>部門</label>
+          <div class="chips" id="deptChips"></div>
+        </div>
+        <div class="group">
+          <label>型號</label>
+          <div class="chips" id="modelChips"></div>
+        </div>
+        <div class="group">
+          <label>車身</label>
+          <div class="chips" id="carBodyChips"></div>
+        </div>
+        <div class="group">
+          <label>保養</label>
+          <div class="chips" id="maintainChips"></div>
+        </div>
+        <div class="group">
+          <label>來源（選填）</label>
+          <div class="chips" id="sourceChips"></div>
+        </div>
+        <div class="group">
+          <label>JOB NO（選填）</label>
+          <input id="jobInput" type="text" placeholder="輸入編號">
+        </div>
+        <div class="group" style="flex:1">
+          <label>備註</label>
+          <textarea id="noteInput" placeholder="可手動分行"></textarea>
+        </div>
+        <div class="group" style="flex:1">
+          <label>物品狀況（可複選）</label>
+          <div id="addStatusChecks"></div>
+        </div>
+      </div>
+      <div class="controls" style="margin-top:8px">
+        <button class="btn" id="addBtn">加入</button>
+        <button class="btn secondary" id="clearBtn">清空</button>
       </div>
     </div>
-  </div>
 
-  <div id="page-add" class="page">
-    <div class="grid">
-      <div class="card">
-        <div class="title">新增記錄</div>
-        <div class="row">
-          <div class="group">
-            <label>物品名稱</label>
-            <input id="nameInput" type="text" placeholder="輸入名稱">
-          </div>
-          <div class="group">
-            <label>種類</label>
-            <div class="chips" id="typeChips"></div>
-          </div>
-          <div class="group">
-            <label>地點</label>
-            <div class="chips" id="locationChips"></div>
-          </div>
-          <div class="group" id="turnGoDateContainer" style="display:none">
-            <label>轉走日期</label>
-            <input type="date" id="turnGoDateInput" disabled>
-          </div>
-          <div class="group">
-            <label>部門</label>
-            <div class="chips" id="deptChips"></div>
-          </div>
-          <div class="group">
-            <label>型號</label>
-            <div class="chips" id="modelChips"></div>
-          </div>
-          <div class="group">
-            <label>車身</label>
-            <div class="chips" id="carBodyChips"></div>
-          </div>
-          <div class="group">
-            <label>保養</label>
-            <div class="chips" id="maintainChips"></div>
-          </div>
-          <div class="group">
-            <label>來源（選填）</label>
-            <div class="chips" id="sourceChips"></div>
-          </div>
-          <div class="group">
-            <label>JOB NO（選填）</label>
-            <input id="jobInput" type="text" placeholder="輸入編號">
-          </div>
-          <div class="group" style="flex:1">
-            <label>備註</label>
-            <textarea id="noteInput" placeholder="可手動分行"></textarea>
-          </div>
-          <div class="group" style="flex:1">
-            <label>物品狀況（可複選）</label>
-            <div id="addStatusChecks"></div>
-          </div>
+    <div class="card">
+      <div class="title">搜尋與篩選</div>
+      <div class="row">
+        <div class="group">
+          <label>名稱關鍵字</label>
+          <input id="searchName" type="text" placeholder="例：引擎">
         </div>
-        <div class="controls" style="margin-top:8px">
-          <button class="btn" id="addBtn">加入</button>
-          <button class="btn secondary" id="clearBtn">清空</button>
+        <div class="group">
+          <label>地點</label>
+          <select id="filterLocation">
+            <option value="">全部</option>
+            <option>場</option>
+            <option>走</option>
+            <option>外判</option>
+          </select>
         </div>
+        <div class="group">
+          <label>來源</label>
+          <select id="filterSource">
+            <option value="">全部</option>
+          </select>
+        </div>
+        <div class="group">
+          <label>轉走日期查詢</label>
+          <input id="filterTurnGoDate" type="date">
+        </div>
+      </div>
+      <div class="controls" style="margin-top:8px">
+        <button class="btn" id="applyFilter">套用</button>
+        <button class="btn secondary" id="resetFilter">重置</button>
       </div>
     </div>
-  </div>
 
-  <div id="page-search" class="page">
-    <div class="grid">
-      <div class="card">
-        <div class="title">搜尋與篩選</div>
-        <div class="row">
-          <div class="group">
-            <label>名稱關鍵字</label>
-            <input id="searchName" type="text" placeholder="例：引擎">
-          </div>
-          <div class="group">
-            <label>地點</label>
-            <select id="filterLocation">
-              <option value="">全部</option>
-              <option>場</option>
-              <option>走</option>
-              <option>外判</option>
-            </select>
-          </div>
-          <div class="group">
-            <label>來源</label>
-            <select id="filterSource">
-              <option value="">全部</option>
-            </select>
-          </div>
-          <div class="group">
-            <label>轉走日期查詢</label>
-            <input id="filterTurnGoDate" type="date">
-          </div>
+    <div class="card">
+      <div class="title">批量編輯</div>
+      <div class="row">
+        <div class="group">
+          <label>選擇地點</label>
+          <div class="chips" id="batchLocationChips"></div>
         </div>
-        <div class="controls" style="margin-top:8px">
-          <button class="btn" id="applyFilter">套用</button>
-          <button class="btn secondary" id="resetFilter">重置</button>
+        <div class="group">
+          <label>選擇部門</label>
+          <div class="chips" id="batchDeptChips"></div>
+        </div>
+        <div class="group">
+          <label>選擇種類</label>
+          <div class="chips" id="batchTypeChips"></div>
+        </div>
+        <div class="group" id="batchTurnGoContainer" style="display:none">
+          <label>批量轉走日期</label>
+          <input type="date" id="batchTurnGoInput" disabled>
         </div>
       </div>
-
-      <div class="card">
-        <div class="title">批量編輯</div>
-        <div class="row">
-          <div class="group">
-            <label>選擇地點</label>
-            <div class="chips" id="batchLocationChips"></div>
-          </div>
-          <div class="group">
-            <label>選擇部門</label>
-            <div class="chips" id="batchDeptChips"></div>
-          </div>
-          <div class="group">
-            <label>選擇種類</label>
-            <div class="chips" id="batchTypeChips"></div>
-          </div>
-          <div class="group" id="batchTurnGoContainer" style="display:none">
-            <label>批量轉走日期</label>
-            <input type="date" id="batchTurnGoInput" disabled>
-          </div>
-        </div>
-        <div class="controls" style="margin-top:8px">
-          <button class="btn" id="applyBatch">套用到已勾選</button>
-          <button class="btn secondary" id="clearBatch">清空選擇</button>
-        </div>
+      <div class="controls" style="margin-top:8px">
+        <button class="btn" id="applyBatch">套用到已勾選</button>
+        <button class="btn secondary" id="clearBatch">清空選擇</button>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="title">清單</div>
-        <div class="controls" style="margin-bottom:8px">
-          <button class="btn secondary" id="selectAllBtn">全選</button>
-          <button class="btn secondary" id="unselectAllBtn">全不選</button>
-          <button class="btn warn" id="deleteSelectedBtn">刪除已勾選</button>
-        </div>
-        <div class="list" id="itemList"></div>
+    <div class="card">
+      <div class="title">目前統計</div>
+      <div class="stat-grid">
+        <div class="stat"><div>場數量</div><div id="stat-yard" class="title">0</div></div>
+        <div class="stat"><div>走數量</div><div id="stat-go" class="title">0</div></div>
+        <div class="stat"><div>外判數量</div><div id="stat-out" class="title">0</div></div>
       </div>
+      <div style="margin-top:8px">
+        <div>場-技術部</div>
+        <div id="stat-yard-tech" class="title">0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">清單</div>
+      <div class="controls" style="margin-bottom:8px">
+        <button class="btn secondary" id="selectAllBtn">全選</button>
+        <button class="btn secondary" id="unselectAllBtn">全不選</button>
+        <button class="btn warn" id="deleteSelectedBtn">刪除已勾選</button>
+      </div>
+      <div class="list" id="itemList"></div>
     </div>
   </div>
 </div>
@@ -302,26 +267,56 @@ const MAINTAINS=["MAN","報價"]
 const SOURCES=["九龍灣","大埇","威菲","南昌","屯門","葵涌","東涌","其他"]
 const STATUSES=["技術部","機修","電器","車身","等零件","等外判"]
 
-function todayStr(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`}
+function todayStr(){
+  const d=new Date()
+  const m=String(d.getMonth()+1).padStart(2,"0")
+  const day=String(d.getDate()).padStart(2,"0")
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
-function loadItems(){try{const raw=localStorage.getItem("warehouse_items");return raw?JSON.parse(raw):[]}catch(e){return []}}
-function saveItems(items){localStorage.setItem("warehouse_items",JSON.stringify(items))}
+
+function loadItems(){
+  try{
+    const raw=localStorage.getItem("warehouse_items")
+    return raw?JSON.parse(raw):[]
+  }catch(e){return []}
+}
+function saveItems(items){
+  localStorage.setItem("warehouse_items",JSON.stringify(items))
+}
+
 function chipGroup(container,options,selected,onSelect){
   container.innerHTML=""
   options.forEach(opt=>{
     const b=document.createElement("button")
-    b.type="button";b.className="chip";b.textContent=opt
+    b.type="button"
+    b.className="chip"
+    b.textContent=opt
     if(selected && selected===opt){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
-    b.addEventListener("click",()=>onSelect(opt))
+    b.addEventListener("click",()=>{
+      onSelect(opt)
+      Array.from(container.querySelectorAll(".chip")).forEach(el=>{
+        el.style.background="#fafafa"
+        el.style.borderColor="#ccc"
+      })
+      b.style.background="#e6f4ea"
+      b.style.borderColor="#3c7"
+    })
     container.appendChild(b)
   })
 }
 
-let addState={type:null,location:null,dept:null,model:null,carBody:null,maintain:null,source:null,statuses:[]}
-let batchState={location:null,dept:null,type:null,turnGoDate:null}
-let filters={name:"",location:"",source:"",turnGoDate:""}
-let editId=null
-let editState={type:null,location:null,dept:null,model:null,carBody:null,maintain:null,source:null,statuses:[]}
+let addState={
+  type:null,
+  location:null,
+  dept:null,
+  model:null,
+  carBody:null,
+  maintain:null,
+  source:null,
+  statuses:[]
+}
 
 function renderAddForm(){
   chipGroup(document.getElementById("typeChips"),TYPES,addState.type,(v)=>{addState.type=v})
@@ -338,7 +333,9 @@ function renderAddStatuses(){
   wrap.innerHTML=""
   STATUSES.forEach(s=>{
     const b=document.createElement("button")
-    b.type="button";b.className="chip";b.textContent=s
+    b.type="button"
+    b.className="chip"
+    b.textContent=s
     const sel=addState.statuses.includes(s)
     if(sel){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
     b.addEventListener("click",()=>{
@@ -349,6 +346,7 @@ function renderAddStatuses(){
     wrap.appendChild(b)
   })
 }
+
 function toggleTurnGoDateAdd(){
   const container=document.getElementById("turnGoDateContainer")
   const input=document.getElementById("turnGoDateInput")
@@ -357,6 +355,7 @@ function toggleTurnGoDateAdd(){
   input.disabled=!show
   if(!show){input.value=""}
 }
+
 function clearAddForm(){
   document.getElementById("nameInput").value=""
   document.getElementById("jobInput").value=""
@@ -366,6 +365,7 @@ function clearAddForm(){
   renderAddForm()
   toggleTurnGoDateAdd()
 }
+
 function addItem(){
   const name=document.getElementById("nameInput").value.trim()
   const job=document.getElementById("jobInput").value.trim()
@@ -375,7 +375,22 @@ function addItem(){
   const items=loadItems()
   const location=addState.location||""
   const turnGoDate=location==="走"?(turnInput||todayStr()):null
-  const item={id:uid(),name,type:addState.type||"",location,dept:addState.dept||"",model:addState.model||"",carBody:addState.carBody||"",maintain:addState.maintain||"",source:addState.source||"",job:job||"",note,statuses:addState.statuses||[],createdDate:todayStr(),turnGoDate}
+  const item={
+    id:uid(),
+    name,
+    type:addState.type||"",
+    location,
+    dept:addState.dept||"",
+    model:addState.model||"",
+    carBody:addState.carBody||"",
+    maintain:addState.maintain||"",
+    source:addState.source||"",
+    job:job||"",
+    note,
+    statuses:addState.statuses||[],
+    createdDate:todayStr(),
+    turnGoDate
+  }
   items.push(item)
   saveItems(items)
   clearAddForm()
@@ -389,6 +404,8 @@ function renderFilterSources(){
   const optAll=document.createElement("option");optAll.value="";optAll.textContent="全部";sel.appendChild(optAll)
   SOURCES.forEach(s=>{const o=document.createElement("option");o.textContent=s;sel.appendChild(o)})
 }
+
+let filters={name:"",location:"",source:"",turnGoDate:""}
 function applyFilters(){
   filters.name=document.getElementById("searchName").value.trim()
   filters.location=document.getElementById("filterLocation").value
@@ -403,6 +420,7 @@ function resetFilters(){
   document.getElementById("filterTurnGoDate").value=""
   applyFilters()
 }
+
 function itemMatches(item){
   if(filters.name && !item.name.includes(filters.name)) return false
   if(filters.location && item.location!==filters.location) return false
@@ -410,10 +428,15 @@ function itemMatches(item){
   if(filters.turnGoDate && item.turnGoDate!==filters.turnGoDate) return false
   return true
 }
+
 function renderList(){
   const list=document.getElementById("itemList")
   list.innerHTML=""
-  const items=loadItems().filter(itemMatches).sort((a,b)=>{const da=a.createdDate||"";const db=b.createdDate||"";return da.localeCompare(db)})
+  const items=loadItems().filter(itemMatches).sort((a,b)=>{
+    const da=a.createdDate||""
+    const db=b.createdDate||""
+    return da.localeCompare(db)
+  })
   items.forEach(item=>{
     const tpl=document.getElementById("itemRowTpl").content.cloneNode(true)
     const root=tpl.querySelector(".item")
@@ -421,14 +444,37 @@ function renderList(){
     cb.dataset.id=item.id
     root.querySelector(".item-name").textContent=item.name
     const tags=root.querySelector(".item-tags")
-    const tagTexts=[item.type?`種類:${item.type}`:"",item.location?`地點:${item.location}`:"",item.dept?`部門:${item.dept}`:"",item.model?`型號:${item.model}`:"",item.carBody?`車身:${item.carBody}`:"",item.maintain?`保養:${item.maintain}`:"",item.source?`來源:${item.source}`:"",item.job?`JOB:${item.job}`:"",item.statuses?.length?`狀況:${item.statuses.join("、")}`:""].filter(Boolean)
-    tagTexts.forEach(t=>{const span=document.createElement("span");span.className="tag";span.textContent=t;tags.appendChild(span)})
-    if(item.location==="走" && item.turnGoDate){const span=document.createElement("span");span.className="tag";span.textContent=`轉走日期:${item.turnGoDate}`;tags.appendChild(span)}
-    const note=root.querySelector(".item-note");note.textContent=item.note||""
-    const editBtn=root.querySelector(".btn-edit");editBtn.addEventListener("click",()=>openEdit(item.id))
+    const tagTexts=[
+      item.type?`種類:${item.type}`:"",
+      item.location?`地點:${item.location}`:"",
+      item.dept?`部門:${item.dept}`:"",
+      item.model?`型號:${item.model}`:"",
+      item.carBody?`車身:${item.carBody}`:"",
+      item.maintain?`保養:${item.maintain}`:"",
+      item.source?`來源:${item.source}`:"",
+      item.job?`JOB:${item.job}`:"",
+      item.statuses?.length?`狀況:${item.statuses.join("、")}`:""
+    ].filter(Boolean)
+    tagTexts.forEach(t=>{
+      const span=document.createElement("span")
+      span.className="tag"
+      span.textContent=t
+      tags.appendChild(span)
+    })
+    if(item.location==="走" && item.turnGoDate){
+      const span=document.createElement("span")
+      span.className="tag"
+      span.textContent=`轉走日期:${item.turnGoDate}`
+      tags.appendChild(span)
+    }
+    const note=root.querySelector(".item-note")
+    note.textContent=item.note||""
+    const editBtn=root.querySelector(".btn-edit")
+    editBtn.addEventListener("click",()=>openEdit(item.id))
     list.appendChild(tpl)
   })
 }
+
 function renderStats(){
   const items=loadItems()
   const yard=items.filter(i=>i.location==="場").length
@@ -441,7 +487,13 @@ function renderStats(){
   document.getElementById("stat-yard-tech").textContent=yardTech
 }
 
-function selectedIds(){return Array.from(document.querySelectorAll(".select-item")).filter(el=>el.checked).map(el=>el.dataset.id)}
+function selectedIds(){
+  return Array.from(document.querySelectorAll(".select-item"))
+    .filter(el=>el.checked)
+    .map(el=>el.dataset.id)
+}
+
+let batchState={location:null,dept:null,type:null,turnGoDate:null}
 function renderBatch(){
   chipGroup(document.getElementById("batchLocationChips"),LOCATIONS,batchState.location,(v)=>{batchState.location=v;toggleBatchTurnGo()})
   chipGroup(document.getElementById("batchDeptChips"),DEPTS,batchState.dept,(v)=>{batchState.dept=v})
@@ -455,28 +507,56 @@ function toggleBatchTurnGo(){
   input.disabled=!show
   if(!show){input.value="";batchState.turnGoDate=null}else{batchState.turnGoDate=input.value||todayStr()}
 }
-document.getElementById("batchTurnGoInput").addEventListener("change",e=>{batchState.turnGoDate=e.target.value||todayStr()})
+document.getElementById("batchTurnGoInput").addEventListener("change",e=>{
+  batchState.turnGoDate=e.target.value||todayStr()
+})
 function clearBatch(){
   batchState={location:null,dept:null,type:null,turnGoDate:null}
-  renderBatch();toggleBatchTurnGo()
+  renderBatch()
+  toggleBatchTurnGo()
   document.querySelectorAll(".select-item").forEach(el=>el.checked=false)
 }
 function applyBatch(){
-  const ids=selectedIds();if(!ids.length) return
+  const ids=selectedIds()
+  if(!ids.length) return
   const items=loadItems()
   const turn=batchState.location==="走"? (batchState.turnGoDate||todayStr()) : null
-  const next=items.map(it=>{if(!ids.includes(it.id)) return it;return {...it,location: batchState.location ?? it.location,dept: batchState.dept ?? it.dept,type: batchState.type ?? it.type,turnGoDate: (batchState.location ?? it.location)==="走" ? (turn ?? it.turnGoDate ?? todayStr()) : null}})
-  saveItems(next);renderList();renderStats()
+  const next=items.map(it=>{
+    if(!ids.includes(it.id)) return it
+    return {
+      ...it,
+      location: batchState.location ?? it.location,
+      dept: batchState.dept ?? it.dept,
+      type: batchState.type ?? it.type,
+      turnGoDate: (batchState.location ?? it.location)==="走" ? (turn ?? it.turnGoDate ?? todayStr()) : null
+    }
+  })
+  saveItems(next)
+  renderList()
+  renderStats()
 }
 
+let editId=null
+let editState={type:null,location:null,dept:null,model:null,carBody:null,maintain:null,source:null,statuses:[]}
 function openEdit(id){
-  const items=loadItems();const item=items.find(i=>i.id===id);if(!item) return
+  const items=loadItems()
+  const item=items.find(i=>i.id===id)
+  if(!item) return
   editId=id
   document.getElementById("editName").value=item.name
   document.getElementById("editJob").value=item.job||""
   document.getElementById("editNote").value=item.note||""
   document.getElementById("editTurnGoDateInput").value=item.turnGoDate||""
-  editState={type:item.type||null,location:item.location||null,dept:item.dept||null,model:item.model||null,carBody:item.carBody||null,maintain:item.maintain||null,source:item.source||null,statuses:item.statuses||[]}
+  editState={
+    type:item.type||null,
+    location:item.location||null,
+    dept:item.dept||null,
+    model:item.model||null,
+    carBody:item.carBody||null,
+    maintain:item.maintain||null,
+    source:item.source||null,
+    statuses:item.statuses||[]
+  }
   chipGroup(document.getElementById("editTypeChips"),TYPES,editState.type,(v)=>{editState.type=v})
   chipGroup(document.getElementById("editLocationChips"),LOCATIONS,editState.location,(v)=>{editState.location=v;toggleEditTurnGo()})
   chipGroup(document.getElementById("editDeptChips"),DEPTS,editState.dept,(v)=>{editState.dept=v})
@@ -484,14 +564,20 @@ function openEdit(id){
   chipGroup(document.getElementById("editCarBodyChips"),CAR_BODIES,editState.carBody,(v)=>{editState.carBody=v})
   chipGroup(document.getElementById("editMaintainChips"),MAINTAINS,editState.maintain,(v)=>{editState.maintain=v})
   chipGroup(document.getElementById("editSourceChips"),SOURCES,editState.source,(v)=>{editState.source=v})
-  renderEditStatuses();toggleEditTurnGo()
+  renderEditStatuses()
+  toggleEditTurnGo()
   document.getElementById("editModal").classList.remove("hidden")
 }
 function renderEditStatuses(){
-  const wrap=document.getElementById("editStatusChecks");wrap.innerHTML=""
+  const wrap=document.getElementById("editStatusChecks")
+  wrap.innerHTML=""
   STATUSES.forEach(s=>{
-    const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=s
-    const sel=editState.statuses.includes(s);if(sel){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
+    const b=document.createElement("button")
+    b.type="button"
+    b.className="chip"
+    b.textContent=s
+    const sel=editState.statuses.includes(s)
+    if(sel){b.style.background="#e6f4ea";b.style.borderColor="#3c7"}
     b.addEventListener("click",()=>{
       const i=editState.statuses.indexOf(s)
       if(i>=0) editState.statuses.splice(i,1); else editState.statuses.push(s)
@@ -508,42 +594,73 @@ function toggleEditTurnGo(){
   input.disabled=!show
   if(!show){input.value=""}
 }
-document.getElementById("cancelEditBtn").addEventListener("click",()=>{document.getElementById("editModal").classList.add("hidden");editId=null})
+document.getElementById("cancelEditBtn").addEventListener("click",()=>{
+  document.getElementById("editModal").classList.add("hidden")
+  editId=null
+})
 document.getElementById("saveEditBtn").addEventListener("click",()=>{
   if(!editId) return
   const name=document.getElementById("editName").value.trim()
   const job=document.getElementById("editJob").value.trim()
   const note=document.getElementById("editNote").value
   const turnInput=document.getElementById("editTurnGoDateInput").value
-  const items=loadItems();const idx=items.findIndex(i=>i.id===editId);if(idx<0) return
+  const items=loadItems()
+  const idx=items.findIndex(i=>i.id===editId)
+  if(idx<0) return
   const loc=editState.location||""
-  const next={...items[idx],name,type:editState.type||"",location:loc,dept:editState.dept||"",model:editState.model||"",carBody:editState.carBody||"",maintain:editState.maintain||"",source:editState.source||"",job:job||"",note,statuses:editState.statuses||[],turnGoDate: loc==="走" ? (turnInput || items[idx].turnGoDate || todayStr()) : null}
-  items[idx]=next;saveItems(items)
-  document.getElementById("editModal").classList.add("hidden");editId=null
-  renderList();renderStats()
+  const next={
+    ...items[idx],
+    name,
+    type:editState.type||"",
+    location:loc,
+    dept:editState.dept||"",
+    model:editState.model||"",
+    carBody:editState.carBody||"",
+    maintain:editState.maintain||"",
+    source:editState.source||"",
+    job:job||"",
+    note,
+    statuses:editState.statuses||[],
+    turnGoDate: loc==="走" ? (turnInput || items[idx].turnGoDate || todayStr()) : null
+  }
+  items[idx]=next
+  saveItems(items)
+  document.getElementById("editModal").classList.add("hidden")
+  editId=null
+  renderList()
+  renderStats()
+})
+
+document.getElementById("addBtn").addEventListener("click",addItem)
+document.getElementById("clearBtn").addEventListener("click",clearAddForm)
+document.getElementById("applyFilter").addEventListener("click",applyFilters)
+document.getElementById("resetFilter").addEventListener("click",resetFilters)
+document.getElementById("selectAllBtn").addEventListener("click",()=>document.querySelectorAll(".select-item").forEach(el=>el.checked=true))
+document.getElementById("unselectAllBtn").addEventListener("click",()=>document.querySelectorAll(".select-item").forEach(el=>el.checked=false))
+document.getElementById("deleteSelectedBtn").addEventListener("click",()=>{
+  const ids=selectedIds()
+  if(!ids.length) return
+  const items=loadItems().filter(it=>!ids.includes(it.id))
+  saveItems(items)
+  renderList()
+  renderStats()
 })
 
 function purgeTestsOnce(){
-  const items=loadItems();if(!items || !items.length) return
+  const items=loadItems()
+  if(!items || !items.length) return
   const next=items.filter(i=>i.name!=="測試A" && i.name!=="測試B")
   if(next.length!==items.length) saveItems(next)
 }
 
-function showPage(name){
-  const pages={stats:document.getElementById("page-stats"),add:document.getElementById("page-add"),search:document.getElementById("page-search")}
-  Object.values(pages).forEach(p=>p.style.display="none")
-  pages[name].style.display="block"
-  document.querySelectorAll(".tab-btn").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.page===name)
-    btn.classList.toggle("secondary",btn.dataset.page!==name)
-  })
-}
 function init(){
   purgeTestsOnce()
-  renderAddForm();renderFilterSources();renderBatch()
-  renderList();renderStats();toggleTurnGoDateAdd()
-  document.querySelectorAll(".tab-btn").forEach(btn=>{btn.addEventListener("click",()=>showPage(btn.dataset.page))})
-  showPage("stats")
+  renderAddForm()
+  renderFilterSources()
+  renderBatch()
+  renderList()
+  renderStats()
+  toggleTurnGoDateAdd()
 }
 document.addEventListener("DOMContentLoaded",init)
 </script>
