@@ -1,414 +1,560 @@
-<!doctype html>
-<html lang="zh-HK">
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>個人記錄倉庫</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f6f7f9;color:#222}
-.container{max-width:1100px;margin:24px auto;padding:0 16px}
-h1{font-size:24px;margin:0 0 12px}
-h2{font-size:18px;margin:24px 0 8px}
-.toolbar{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:8px}
-.search{display:flex;gap:8px}
-input[type="text"],input[type="date"]{padding:8px;border:1px solid #ccd3db;border-radius:6px;background:#fff;min-width:240px}
-button{padding:8px 12px;border:1px solid #ccd3db;border-radius:6px;background:#fff;cursor:pointer}
-button:hover{background:#f0f2f5}
-.group-label{font-size:12px;color:#555;margin-bottom:4px}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #ccd3db;border-radius:999px;background:#fff;color:#333;cursor:pointer}
-.chip.selected{background:#2563eb;color:#fff;border-color:#2563eb}
-.chip.secondary{background:#eef2ff;border-color:#c7d2fe}
-.count{display:inline-block;min-width:22px;padding:2px 6px;border-radius:999px;background:#e5e7eb;color:#333;font-size:12px}
-.chip.selected .count{background:#1e3a8a;color:#fff}
-.form-section,.alerts,.list-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
-.form-row{display:flex;align-items:center;gap:12px;margin:10px 0}
-.form-row label{width:110px}
-.form-actions{display:flex;gap:10px;margin-top:8px}
-.overdue-summary{display:flex;flex-direction:column;gap:6px}
-.overdue-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5;font-size:12px}
-.list{width:100%;border-collapse:collapse}
-.list th,.list td{border-bottom:1px solid #eee;padding:8px;text-align:left;vertical-align:top}
-.list thead th{background:#f9fafb}
-.status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid}
-.status-ok{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
-.status-overdue{background:#fee2e2;color:#7f1d1d;border-color:#fecaca}
-.list-info{font-size:12px;color:#555;margin-bottom:8px}
-.toolbar .location-filter{flex:1}
-</style>
+  <meta charset="UTF-8" />
+  <title>個人倉庫記錄</title>
+  <style>
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:1000px;margin:20px auto;padding:0 12px}
+    h1{text-align:center;margin-bottom:16px}
+    form{border:1px solid #ccc;padding:12px;border-radius:6px;margin-bottom:20px}
+    label{display:block;margin-bottom:8px}
+    input[type="text"],input[type="date"],textarea{width:100%;padding:6px 8px;box-sizing:border-box;margin-top:4px}
+    textarea{resize:vertical;min-height:60px}
+    button{padding:6px 12px;margin-top:8px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;font-size:14px;vertical-align:top}
+    th{background:#f5f5f5}
+    tr:nth-child(even){background:#fafafa}
+    .warning{color:#b00020;font-weight:600}
+    .warning-row{background:#ffe6e6!important}
+    .actions button{font-size:12px;margin-right:4px}
+    .small{font-size:12px;color:#666;margin-top:4px}
+    .group{margin-top:6px}
+    .inline-group{margin-top:4px}
+    .inline-group label{display:inline-block;margin-right:12px;margin-bottom:4px}
+    #locationSummary{margin-top:4px;margin-bottom:4px;font-size:14px;color:#333}
+    .panel{border:1px solid #ddd;border-radius:6px;padding:10px;margin-top:12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row .col{flex:1 1 300px}
+    #searchInput{width:100%;padding:6px 8px;box-sizing:border-box}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:999}
+    .modal{background:#fff;width:90%;max-width:720px;border-radius:8px;padding:16px}
+    .modal-header{font-weight:600;margin-bottom:8px}
+    .modal-actions{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+    .pre{white-space:pre-wrap}
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>個人記錄倉庫</h1>
-  <section class="toolbar">
-    <div class="search">
-      <input id="searchInput" type="text" placeholder="以物品名稱搜尋">
-      <button id="clearSearch">清除</button>
+  <h1>個人倉庫記錄</h1>
+
+  <form id="itemForm">
+    <div class="row">
+      <div class="col">
+        <label>物品名稱（必填）<input type="text" id="nameInput" required /></label>
+      </div>
+      <div class="col">
+        <label>入庫日期（必填）<input type="date" id="dateInput" required /></label>
+      </div>
+      <div class="col">
+        <label>JOB NO（選填）<input type="text" id="jobNoInput" /></label>
+      </div>
     </div>
-    <div class="location-filter">
-      <div class="group-label">地點篩選</div>
-      <div class="chips" id="locationFilter">
-        <button class="chip" data-value="場">場<span class="count" data-count="場">0</span></button>
-        <button class="chip" data-value="走">走<span class="count" data-count="走">0</span></button>
-        <button class="chip" data-value="外判">外判<span class="count" data-count="外判">0</span></button>
-        <button class="chip secondary" data-value="">全部</button>
+
+    <label>備註（選填）<textarea id="noteInput" placeholder="可手動分行"></textarea></label>
+
+    <div class="group">物品狀況（可多選）
+      <div id="statusGroup" class="inline-group">
+        <label><input type="checkbox" value="技術部" /> 技術部</label>
+        <label><input type="checkbox" value="機修" /> 機修</label>
+        <label><input type="checkbox" value="電器" /> 電器</label>
+        <label><input type="checkbox" value="車身" /> 車身</label>
+        <label><input type="checkbox" value="等零件" /> 等零件</label>
+        <label><input type="checkbox" value="等外判" /> 等外判</label>
       </div>
-      <div class="filter-summary" id="filterSummary"></div>
     </div>
-  </section>
 
-  <section class="form-section">
-    <h2>新增記錄</h2>
-    <form id="recordForm">
-      <div class="form-row">
-        <label>物品名稱</label>
-        <input id="nameInput" type="text" required placeholder="輸入物品名稱">
+    <div class="group">地點（直接點選一個）
+      <div id="locationGroup" class="inline-group">
+        <label><input type="radio" name="location" value="場" /> 場</label>
+        <label><input type="radio" name="location" value="走" /> 走</label>
+        <label><input type="radio" name="location" value="外判" /> 外判</label>
       </div>
-      <div class="form-row">
-        <label>入庫日期</label>
-        <input id="dateInput" type="date" required>
+    </div>
+
+    <div class="group">轉走日期（選填）
+      <input type="date" id="turnGoDateInput" disabled />
+    </div>
+
+    <div class="group">種類（直接點選一個）
+      <div id="typeGroup" class="inline-group">
+        <label><input type="radio" name="type" value="垃圾車(大)" /> 垃圾車(大)</label>
+        <label><input type="radio" name="type" value="垃圾車(細)" /> 垃圾車(細)</label>
+        <label><input type="radio" name="type" value="巴士仔" /> 巴士仔</label>
+        <label><input type="radio" name="type" value="TGE" /> TGE</label>
+        <label><input type="radio" name="type" value="其他" /> 其他</label>
       </div>
-      <div class="form-row">
-        <label>JOB NO. (可選)</label>
-        <input id="jobInput" type="text" placeholder="可留空">
+    </div>
+
+    <div class="group">部門（直接點選一個）
+      <div id="departmentGroup" class="inline-group">
+        <label><input type="radio" name="department" value="機電" /> 機電</label>
+        <label><input type="radio" name="department" value="食環" /> 食環</label>
+        <label><input type="radio" name="department" value="懲教" /> 懲教</label>
+        <label><input type="radio" name="department" value="海關" /> 海關</label>
+        <label><input type="radio" name="department" value="警察" /> 警察</label>
+        <label><input type="radio" name="department" value="消防" /> 消防</label>
       </div>
-      <div class="form-row">
-        <label>物品狀況 (可多選)</label>
-        <div class="chips multi" id="conditionChips"></div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div class="group">車身（直接點選一個）
+          <div id="bodyGroup" class="inline-group">
+            <label><input type="radio" name="body" value="MAN" /> MAN</label>
+            <label><input type="radio" name="body" value="新力" /> 新力</label>
+            <label><input type="radio" name="body" value="其他" /> 其他</label>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>地點</label>
-        <div class="chips single" id="locationChips"></div>
+      <div class="col">
+        <div class="group">保養（直接點選一個）
+          <div id="maintGroup" class="inline-group">
+            <label><input type="radio" name="maintenance" value="MAN" /> MAN</label>
+            <label><input type="radio" name="maintenance" value="報價" /> 報價</label>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>種類</label>
-        <div class="chips single" id="typeChips"></div>
+      <div class="col">
+        <div class="group">型號（直接點選一個）
+          <div id="modelGroup" class="inline-group">
+            <label><input type="radio" name="model" value="TG2" /> TG2</label>
+            <label><input type="radio" name="model" value="TG3" /> TG3</label>
+            <label><input type="radio" name="model" value="其他" /> 其他</label>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>部門</label>
-        <div class="chips single" id="departmentChips"></div>
+    </div>
+
+    <div class="group">來源（選填，直接點選）
+      <div id="sourceGroup" class="inline-group">
+        <label><input type="radio" name="source" value="九龍灣" /> 九龍灣</label>
+        <label><input type="radio" name="source" value="大埔" /> 大埔</label>
+        <label><input type="radio" name="source" value="威菲" /> 威菲</label>
+        <label><input type="radio" name="source" value="南昌" /> 南昌</label>
+        <label><input type="radio" name="source" value="屯門" /> 屯門</label>
+        <label><input type="radio" name="source" value="葵涌" /> 葵涌</label>
+        <label><input type="radio" name="source" value="東涌" /> 東涌</label>
+        <label><input type="radio" name="source" value="其他" /> 其他</label>
       </div>
-      <div class="form-row">
-        <label>車身</label>
-        <div class="chips single" id="bodyChips"></div>
+    </div>
+
+    <button type="submit">新增記錄</button>
+    <div class="small">資料存於本機瀏覽器（localStorage）。</div>
+  </form>
+
+  <div class="panel">
+    <div class="row">
+      <div class="col">
+        <label>搜尋物品名稱
+          <input id="searchInput" placeholder="輸入名稱關鍵字…" />
+        </label>
       </div>
-      <div class="form-row">
-        <label>來源 (可選)</label>
-        <div class="chips single optional" id="sourceChips"></div>
+      <div class="col">
+        <div>目前紀錄地點統計：<span id="locationSummary"></span></div>
       </div>
-      <div class="form-row">
-        <label>型號</label>
-        <div class="chips single" id="modelChips"></div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div>地點×狀況統計
+          <div class="inline-group">
+            <span>地點：</span>
+            <label><input type="radio" name="statLocation" value="場" checked /> 場</label>
+            <label><input type="radio" name="statLocation" value="走" /> 走</label>
+            <label><input type="radio" name="statLocation" value="外判" /> 外判</label>
+          </div>
+          <div class="inline-group">
+            <span>狀況：</span>
+            <label><input type="radio" name="statStatus" value="技術部" checked /> 技術部</label>
+            <label><input type="radio" name="statStatus" value="機修" /> 機修</label>
+            <label><input type="radio" name="statStatus" value="電器" /> 電器</label>
+            <label><input type="radio" name="statStatus" value="車身" /> 車身</label>
+            <label><input type="radio" name="statStatus" value="等零件" /> 等零件</label>
+            <label><input type="radio" name="statStatus" value="等外判" /> 等外判</label>
+          </div>
+          <div>符合筆數：<span id="statCount">0</span></div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>保養</label>
-        <div class="chips single" id="maintenanceChips"></div>
+      <div class="col">
+        <div>前紀錄地點查詢（依最早日期排列）
+          <div class="inline-group">
+            <label><input type="radio" name="historyLocation" value="場" checked /> 場</label>
+            <label><input type="radio" name="historyLocation" value="走" /> 走</label>
+            <label><input type="radio" name="historyLocation" value="外判" /> 外判</label>
+          </div>
+          <div>總數：<span id="historyCount">0</span></div>
+          <table>
+            <thead>
+              <tr>
+                <th>物品名稱</th>
+                <th>入庫日期</th>
+                <th>種類</th>
+                <th>部門</th>
+                <th>狀況</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="form-actions">
-        <button type="submit">新增</button>
-        <button type="reset" id="resetForm">重設</button>
+      <div class="col">
+        <div>目前紀錄來源過濾
+          <div class="inline-group">
+            <span>地點：</span>
+            <label><input type="radio" name="filterLocation" value="全部" checked /> 全部</label>
+            <label><input type="radio" name="filterLocation" value="場" /> 場</label>
+            <label><input type="radio" name="filterLocation" value="走" /> 走</label>
+            <label><input type="radio" name="filterLocation" value="外判" /> 外判</label>
+          </div>
+          <div class="inline-group">
+            <span>來源：</span>
+            <label><input type="radio" name="filterSource" value="全部" checked /> 全部</label>
+            <label><input type="radio" name="filterSource" value="九龍灣" /> 九龍灣</label>
+            <label><input type="radio" name="filterSource" value="大埔" /> 大埔</label>
+            <label><input type="radio" name="filterSource" value="威菲" /> 威菲</label>
+            <label><input type="radio" name="filterSource" value="南昌" /> 南昌</label>
+            <label><input type="radio" name="filterSource" value="屯門" /> 屯門</label>
+            <label><input type="radio" name="filterSource" value="葵涌" /> 葵涌</label>
+            <label><input type="radio" name="filterSource" value="東涌" /> 東涌</label>
+            <label><input type="radio" name="filterSource" value="其他" /> 其他</label>
+          </div>
+        </div>
       </div>
-    </form>
-  </section>
+    </div>
 
-  <section class="alerts">
-    <h2>逾期提醒</h2>
-    <div id="overdueSummary" class="overdue-summary"></div>
-  </section>
+    <div class="row">
+      <div class="col">
+        <div>轉走日期查詢
+          <div class="inline-group">
+            <label>選擇日期 <input type="date" id="goDateQuery" /></label>
+          </div>
+          <div>當日轉去「走」總數：<span id="goDateCount">0</span></div>
+          <table>
+            <thead>
+              <tr>
+                <th>物品名稱</th>
+                <th>轉走日期</th>
+                <th>入庫日期</th>
+                <th>種類</th>
+                <th>部門</th>
+                <th>狀況</th>
+              </tr>
+            </thead>
+            <tbody id="goDateTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <section class="list-section">
-    <h2>目前紀錄</h2>
-    <div id="listInfo" class="list-info"></div>
-    <table class="list" id="recordsTable">
-      <thead>
-        <tr>
-          <th>物品名稱</th>
-          <th>入庫日期</th>
-          <th>地點</th>
-          <th>種類</th>
-          <th>部門</th>
-          <th>狀況</th>
-          <th>車身</th>
-          <th>來源</th>
-          <th>型號</th>
-          <th>保養</th>
-          <th>JOB</th>
-          <th>狀態</th>
-        </tr>
-      </thead>
-      <tbody id="recordsBody"></tbody>
-    </table>
-  </section>
-</div>
-<script>
-const OPTIONS={
-  condition:['技術部','機修','電器','車身','等零件','等外判'],
-  location:['場','走','外判'],
-  type:['垃圾車(大)','垃圾車(細)','巴士仔','TGE','其他'],
-  department:['機電','食環','懲教','海關','警察','消防'],
-  body:['MAN','新力','其他'],
-  source:['九龍灣','大埔','威菲','南昌','屯門','葵涌','東涌','其他'],
-  model:['TG2','TG3','其他'],
-  maintenance:['MAN','報價']
-};
+  <h2>目前記錄</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>物品名稱</th>
+        <th>種類</th>
+        <th>地點</th>
+        <th>轉走日期</th>
+        <th>來源</th>
+        <th>部門</th>
+        <th>車身</th>
+        <th>保養</th>
+        <th>型號</th>
+        <th>JOB NO</th>
+        <th>入庫日期</th>
+        <th>已入庫天數</th>
+        <th>提醒</th>
+        <th>物品狀況</th>
+        <th>備註</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="itemTableBody"></tbody>
+  </table>
 
-const STORAGE_KEY='recordApp.records';
+  <div class="modal-backdrop" id="editModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">編輯記錄</div>
+      <div id="editForm"></div>
+      <div class="modal-actions">
+        <button id="editSaveBtn">儲存</button>
+        <button id="editCancelBtn">取消</button>
+      </div>
+    </div>
+  </div>
 
-function loadRecords(){
-  const raw=localStorage.getItem(STORAGE_KEY);
-  if(!raw) return [];
-  try{ return JSON.parse(raw)||[] }catch(e){ return [] }
-}
+  <script>
+    const STORAGE_KEY="personal_warehouse_items";
+    function loadItems(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return[];try{return JSON.parse(raw)}catch(e){return[]}}
+    function saveItems(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items))}
+    function calcDaysDiff(d){const t=new Date();const f=new Date(d+"T00:00:00");return Math.floor((t-f)/(1000*60*60*24))}
+    function getCheckedValues(sel){return Array.from(document.querySelectorAll(sel)).map(x=>x.value)}
+    function getRadioValue(name){const n=document.querySelector(`input[name="${name}"]:checked`);return n?n.value:""}
+    function todayStr(){const t=new Date();const y=t.getFullYear();const m=String(t.getMonth()+1).padStart(2,"0");const d=String(t.getDate()).padStart(2,"0");return `${y}-${m}-${d}`}
+    let editingIndex=null;
 
-function saveRecords(list){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(list));
-}
-
-function todayISO(){
-  const d=new Date();
-  d.setHours(0,0,0,0);
-  return d.toISOString().split('T')[0];
-}
-
-function parseISO(s){
-  const parts=s.split('-').map(Number);
-  return new Date(parts[0],parts[1]-1,parts[2]);
-}
-
-function daysBetween(a,b){
-  const ms=Math.abs(a.getTime()-b.getTime());
-  return Math.floor(ms/86400000);
-}
-
-function isOverdue(rec){
-  const d=parseISO(rec.entryDate);
-  const t=new Date(); t.setHours(0,0,0,0);
-  return daysBetween(d,t)>10;
-}
-
-const state={
-  records:loadRecords(),
-  filters:{ search:'', location:'' }
-};
-
-function renderChips(containerId, items, mode){
-  const el=document.getElementById(containerId);
-  el.innerHTML='';
-  items.forEach(v=>{
-    const b=document.createElement('button');
-    b.type='button';
-    b.className='chip';
-    b.textContent=v;
-    b.dataset.value=v;
-    b.addEventListener('click',()=>{
-      if(mode==='multi'){
-        b.classList.toggle('selected');
-      }else{
-        [...el.querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected'));
-        if(!b.classList.contains('selected')) b.classList.add('selected');
-        else b.classList.remove('selected');
-      }
-    });
-    el.appendChild(b);
-  });
-  if(mode==='single' && el.classList.contains('optional')){
-    const none=document.createElement('button');
-    none.type='button';
-    none.className='chip secondary';
-    none.textContent='不選';
-    none.dataset.value='';
-    none.addEventListener('click',()=>{
-      [...el.querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected'));
-    });
-    el.appendChild(none);
-  }
-}
-
-function getSelectedValues(containerId, mode){
-  const el=document.getElementById(containerId);
-  const selected=[...el.querySelectorAll('.chip.selected')].map(x=>x.dataset.value);
-  if(mode==='multi') return selected;
-  return selected[0]||'';
-}
-
-function setupForm(){
-  renderChips('conditionChips',OPTIONS.condition,'multi');
-  renderChips('locationChips',OPTIONS.location,'single');
-  renderChips('typeChips',OPTIONS.type,'single');
-  renderChips('departmentChips',OPTIONS.department,'single');
-  renderChips('bodyChips',OPTIONS.body,'single');
-  renderChips('sourceChips',OPTIONS.source,'single');
-  document.getElementById('sourceChips').classList.add('optional');
-  renderChips('modelChips',OPTIONS.model,'single');
-  renderChips('maintenanceChips',OPTIONS.maintenance,'single');
-
-  const dateInput=document.getElementById('dateInput');
-  dateInput.value=todayISO();
-
-  const form=document.getElementById('recordForm');
-  form.addEventListener('submit',e=>{
-    e.preventDefault();
-    const name=document.getElementById('nameInput').value.trim();
-    const entryDate=document.getElementById('dateInput').value;
-    const job=document.getElementById('jobInput').value.trim();
-    const condition=getSelectedValues('conditionChips','multi');
-    const location=getSelectedValues('locationChips','single');
-    const type=getSelectedValues('typeChips','single');
-    const department=getSelectedValues('departmentChips','single');
-    const body=getSelectedValues('bodyChips','single');
-    const source=getSelectedValues('sourceChips','single');
-    const model=getSelectedValues('modelChips','single');
-    const maintenance=getSelectedValues('maintenanceChips','single');
-    if(!name||!entryDate||!location||!type||!department||!body||!model||!maintenance){
-      alert('請完成必填選項');
-      return;
+    function renderSummary(items){
+      const counts={"場":0,"走":0,"外判":0};
+      items.forEach(i=>{if(i.location&&counts.hasOwnProperty(i.location))counts[i.location]+=1});
+      const el=document.getElementById("locationSummary");
+      el.textContent=`場: ${counts["場"]} 件　走: ${counts["走"]} 件　外判: ${counts["外判"]} 件　總數: ${items.length} 件`;
     }
-    const rec={
-      id:Date.now(),
-      name,
-      entryDate,
-      jobNo:job,
-      condition,
-      location,
-      type,
-      department,
-      body,
-      source,
-      model,
-      maintenance
-    };
-    state.records.push(rec);
-    saveRecords(state.records);
-    form.reset();
-    document.getElementById('dateInput').value=todayISO();
-    renderCounts();
-    renderOverdue();
-    renderList();
-  });
 
-  document.getElementById('resetForm').addEventListener('click',()=>{
-    document.getElementById('dateInput').value=todayISO();
-    ['conditionChips','locationChips','typeChips','departmentChips','bodyChips','sourceChips','modelChips','maintenanceChips']
-      .forEach(id=>[...document.getElementById(id).querySelectorAll('.chip')].forEach(x=>x.classList.remove('selected')));
-  });
-}
+    function renderStats(items){
+      const loc=getRadioValue("statLocation");
+      const st=getRadioValue("statStatus");
+      const n=items.filter(i=>i.location===loc && Array.isArray(i.status) && i.status.includes(st)).length;
+      document.getElementById("statCount").textContent=String(n);
+    }
 
-function renderCounts(){
-  const counts={};
-  OPTIONS.location.forEach(l=>counts[l]=0);
-  state.records.forEach(r=>{ if(counts[r.location]!=null) counts[r.location]++ });
-  const lf=document.getElementById('locationFilter');
-  ['場','走','外判'].forEach(l=>{
-    const btn=[...lf.querySelectorAll('.chip')].find(x=>x.dataset.value===l);
-    const span=btn.querySelector(`[data-count="${l}"]`);
-    if(span) span.textContent=counts[l]||0;
-  });
-}
+    function renderHistory(items){
+      const loc=getRadioValue("historyLocation");
+      const list=items.filter(i=>i.location===loc).sort((a,b)=>new Date(a.date)-new Date(b.date));
+      document.getElementById("historyCount").textContent=String(list.length);
+      const tbody=document.getElementById("historyTableBody");
+      tbody.innerHTML="";
+      list.forEach(i=>{
+        const tr=document.createElement("tr");
+        const nameTd=document.createElement("td");nameTd.textContent=i.name;
+        const dateTd=document.createElement("td");dateTd.textContent=i.date;
+        const typeTd=document.createElement("td");typeTd.textContent=i.type||"";
+        const deptTd=document.createElement("td");deptTd.textContent=i.department||"";
+        const statusTd=document.createElement("td");statusTd.textContent=Array.isArray(i.status)?i.status.join("、"):"";
+        tr.appendChild(nameTd);tr.appendChild(dateTd);tr.appendChild(typeTd);tr.appendChild(deptTd);tr.appendChild(statusTd);
+        tbody.appendChild(tr);
+      });
+    }
 
-function renderOverdue(){
-  const list=state.records.filter(isOverdue);
-  const box=document.getElementById('overdueSummary');
-  box.innerHTML='';
-  if(list.length===0){
-    const d=document.createElement('div');
-    d.textContent='沒有逾期項目';
-    box.appendChild(d);
-    return;
-  }
-  const t=new Date(); t.setHours(0,0,0,0);
-  list.forEach(r=>{
-    const d=parseISO(r.entryDate);
-    const days=daysBetween(d,t);
-    const item=document.createElement('div');
-    item.innerHTML=`<span class="overdue-badge">逾期 ${days} 天</span> ${r.name}（${r.location}，${r.entryDate}）`;
-    box.appendChild(item);
-  });
-}
+    function renderGoDateQuery(items){
+      const qDate=document.getElementById("goDateQuery").value;
+      const list=items.filter(i=>i.turnGoDate && i.turnGoDate===qDate).sort((a,b)=>new Date(a.turnGoDate)-new Date(b.turnGoDate));
+      document.getElementById("goDateCount").textContent=String(list.length);
+      const tbody=document.getElementById("goDateTableBody");
+      tbody.innerHTML="";
+      list.forEach(i=>{
+        const tr=document.createElement("tr");
+        const nameTd=document.createElement("td");nameTd.textContent=i.name;
+        const goTd=document.createElement("td");goTd.textContent=i.turnGoDate||"";
+        const dateTd=document.createElement("td");dateTd.textContent=i.date;
+        const typeTd=document.createElement("td");typeTd.textContent=i.type||"";
+        const deptTd=document.createElement("td");deptTd.textContent=i.department||"";
+        const statusTd=document.createElement("td");statusTd.textContent=Array.isArray(i.status)?i.status.join("、"):"";
+        tr.appendChild(nameTd);tr.appendChild(goTd);tr.appendChild(dateTd);tr.appendChild(typeTd);tr.appendChild(deptTd);tr.appendChild(statusTd);
+        tbody.appendChild(tr);
+      });
+    }
 
-function renderList(){
-  const tbody=document.getElementById('recordsBody');
-  tbody.innerHTML='';
-  const search=state.filters.search.toLowerCase();
-  const loc=state.filters.location;
-  let list=state.records.filter(r=>r.name.toLowerCase().includes(search));
-  if(loc) list=list.filter(r=>r.location===loc);
-  list=list.slice();
-  if(loc){
-    list.sort((a,b)=>parseISO(a.entryDate)-parseISO(b.entryDate));
-  }else{
-    list.sort((a,b)=>parseISO(b.entryDate)-parseISO(a.entryDate));
-  }
-  list.forEach(r=>{
-    const tr=document.createElement('tr');
-    const cond=r.condition.join('、');
-    const status=isOverdue(r)?'<span class="status-pill status-overdue">逾期</span>':'<span class="status-pill status-ok">正常</span>';
-    tr.innerHTML=`
-      <td>${r.name}</td>
-      <td>${r.entryDate}</td>
-      <td>${r.location}</td>
-      <td>${r.type}</td>
-      <td>${r.department}</td>
-      <td>${cond}</td>
-      <td>${r.body}</td>
-      <td>${r.source||''}</td>
-      <td>${r.model}</td>
-      <td>${r.maintenance}</td>
-      <td>${r.jobNo||''}</td>
-      <td>${status}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-  const info=document.getElementById('listInfo');
-  if(loc){
-    const total=list.length;
-    const earliest=list[0]?list[0].entryDate:'—';
-    info.textContent=`地點：${loc}｜總數：${total}｜最早日期：${earliest}`;
-  }else{
-    info.textContent=`全部記錄：${list.length}`;
-  }
-}
+    function renderMain(items){
+      const q=document.getElementById("searchInput").value.trim().toLowerCase();
+      const fLoc=getRadioValue("filterLocation");
+      const fSrc=getRadioValue("filterSource");
+      const filtered=items.filter(i=>{
+        const nameOk= i.name && i.name.toLowerCase().includes(q);
+        const locOk= fLoc==="全部" ? true : i.location===fLoc;
+        const srcOk= fSrc==="全部" ? true : i.source===fSrc;
+        return nameOk && locOk && srcOk;
+      });
+      const tbody=document.getElementById("itemTableBody");
+      tbody.innerHTML="";
+      filtered.forEach((item,index)=>{
+        const tr=document.createElement("tr");
+        const days=calcDaysDiff(item.date);
+        const over=days>10;
+        if(over)tr.classList.add("warning-row");
 
-function setupSearch(){
-  const input=document.getElementById('searchInput');
-  const clear=document.getElementById('clearSearch');
-  input.addEventListener('input',()=>{
-    state.filters.search=input.value||'';
-    renderList();
-  });
-  clear.addEventListener('click',()=>{
-    input.value='';
-    state.filters.search='';
-    renderList();
-  });
-}
+        const nameTd=document.createElement("td");nameTd.textContent=item.name;
+        const typeTd=document.createElement("td");typeTd.textContent=item.type||"";
+        const locationTd=document.createElement("td");locationTd.textContent=item.location||"";
+        const goDateTd=document.createElement("td");goDateTd.textContent=item.turnGoDate||"";
+        const sourceTd=document.createElement("td");sourceTd.textContent=item.source||"";
+        const deptTd=document.createElement("td");deptTd.textContent=item.department||"";
+        const bodyTd=document.createElement("td");bodyTd.textContent=item.body||"";
+        const maintTd=document.createElement("td");maintTd.textContent=item.maintenance||"";
+        const modelTd=document.createElement("td");modelTd.textContent=item.model||"";
+        const jobTd=document.createElement("td");jobTd.textContent=item.jobNo||"";
+        const dateTd=document.createElement("td");dateTd.textContent=item.date;
+        const daysTd=document.createElement("td");daysTd.textContent=days+" 天";
+        const warnTd=document.createElement("td");warnTd.textContent=over?"已超過 10 天":"尚未超過 10 天";if(over)warnTd.classList.add("warning");
+        const statusTd=document.createElement("td");statusTd.textContent=Array.isArray(item.status)?item.status.join("、"):"";
+        const noteTd=document.createElement("td");noteTd.className="pre";noteTd.textContent=item.note||"";
 
-function setupLocationFilter(){
-  const lf=document.getElementById('locationFilter');
-  lf.querySelectorAll('.chip').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const val=btn.dataset.value;
-      state.filters.location=val;
-      lf.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));
-      if(val) btn.classList.add('selected');
-      const summary=document.getElementById('filterSummary');
-      if(val) summary.textContent=`已選地點：${val}`;
-      else summary.textContent='';
-      renderList();
+        const actionsTd=document.createElement("td");actionsTd.className="actions";
+        const editBtn=document.createElement("button");editBtn.textContent="編輯";
+        editBtn.onclick=()=>openEditModal(index);
+        const delBtn=document.createElement("button");delBtn.textContent="刪除";
+        delBtn.onclick=()=>{if(confirm("確定刪除？")){const cur=loadItems();cur.splice(index,1);saveItems(cur);fullRender()}};
+
+        actionsTd.appendChild(editBtn);actionsTd.appendChild(delBtn);
+        tr.appendChild(nameTd);tr.appendChild(typeTd);tr.appendChild(locationTd);tr.appendChild(goDateTd);
+        tr.appendChild(sourceTd);tr.appendChild(deptTd);tr.appendChild(bodyTd);tr.appendChild(maintTd);tr.appendChild(modelTd);
+        tr.appendChild(jobTd);tr.appendChild(dateTd);tr.appendChild(daysTd);tr.appendChild(warnTd);
+        tr.appendChild(statusTd);tr.appendChild(noteTd);tr.appendChild(actionsTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function fullRender(){
+      const items=loadItems();
+      renderSummary(items);
+      renderStats(items);
+      renderHistory(items);
+      renderGoDateQuery(items);
+      renderMain(items);
+    }
+
+    function updateTurnGoDateInputEnable(){
+      const loc=getRadioValue("location");
+      const input=document.getElementById("turnGoDateInput");
+      if(!input)return;
+      if(loc==="走"){input.disabled=false}else{input.disabled=true;input.value=""}
+    }
+
+    document.getElementById("itemForm").addEventListener("submit",(e)=>{
+      e.preventDefault();
+      const name=document.getElementById("nameInput").value.trim();
+      const date=document.getElementById("dateInput").value;
+      const note=document.getElementById("noteInput").value.trim();
+      const jobNo=document.getElementById("jobNoInput").value.trim();
+      const status=getCheckedValues('#statusGroup input[type="checkbox"]:checked');
+      const location=getRadioValue("location");
+      const type=getRadioValue("type");
+      const department=getRadioValue("department");
+      const body=getRadioValue("body");
+      const maintenance=getRadioValue("maintenance");
+      const model=getRadioValue("model");
+      const source=getRadioValue("source");
+      const turnGoInput=document.getElementById("turnGoDateInput");
+      const turnGoVal=turnGoInput?turnGoInput.value:"";
+      if(!name||!date||!location||!type||!department||!body||!maintenance||!model){alert("請完整選擇必填欄位");return}
+      const turnGoDate = location==="走" ? (turnGoVal || todayStr()) : "";
+      const items=loadItems();
+      items.push({name,date,note,jobNo,status,location,type,department,body,maintenance,model,source,turnGoDate});
+      saveItems(items);
+      document.getElementById("nameInput").value="";
+      document.getElementById("dateInput").value="";
+      document.getElementById("noteInput").value="";
+      document.getElementById("jobNoInput").value="";
+      document.querySelectorAll('#statusGroup input[type="checkbox"]').forEach(cb=>cb.checked=false);
+      document.querySelectorAll('#locationGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#typeGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#departmentGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#bodyGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#maintGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#modelGroup input[type="radio"]').forEach(r=>r.checked=false);
+      document.querySelectorAll('#sourceGroup input[type="radio"]').forEach(r=>r.checked=false);
+      const turnEl=document.getElementById("turnGoDateInput");if(turnEl){turnEl.value="";turnEl.disabled=true}
+      fullRender();
     });
-  });
-}
 
-function init(){
-  setupForm();
-  setupSearch();
-  setupLocationFilter();
-  renderCounts();
-  renderOverdue();
-  renderList();
-}
+    document.getElementById("searchInput").addEventListener("input",()=>renderMain(loadItems()));
+    document.querySelectorAll('input[name="statLocation"]').forEach(r=>r.addEventListener("change",()=>renderStats(loadItems())));
+    document.querySelectorAll('input[name="statStatus"]').forEach(r=>r.addEventListener("change",()=>renderStats(loadItems())));
+    document.querySelectorAll('input[name="historyLocation"]').forEach(r=>r.addEventListener("change",()=>renderHistory(loadItems())));
+    document.querySelectorAll('input[name="filterLocation"]').forEach(r=>r.addEventListener("change",()=>renderMain(loadItems())));
+    document.querySelectorAll('input[name="filterSource"]').forEach(r=>r.addEventListener("change",()=>renderMain(loadItems())));
+    document.getElementById("goDateQuery").addEventListener("change",()=>renderGoDateQuery(loadItems()));
+    document.querySelectorAll('input[name="location"]').forEach(r=>r.addEventListener("change",updateTurnGoDateInputEnable));
 
-document.addEventListener('DOMContentLoaded',init);
-</script>
+    function openEditModal(index){
+      editingIndex=index;
+      const items=loadItems();
+      const it=items[index];
+      const wrap=document.getElementById("editForm");
+      wrap.innerHTML="";
+      const root=document.createElement("div");
+      root.innerHTML=
+        '<div class="row">'+
+          '<div class="col"><label>物品名稱（必填）<input id="e_name" value="'+(it.name||'')+'"/></label></div>'+
+          '<div class="col"><label>入庫日期（必填）<input type="date" id="e_date" value="'+(it.date||'')+'"/></label></div>'+
+          '<div class="col"><label>JOB NO（選填）<input id="e_jobNo" value="'+(it.jobNo||'')+'"/></label></div>'+
+        '</div>'+
+        '<label>備註（選填）<textarea id="e_note">'+(it.note||'')+'</textarea></label>'+
+        '<div class="group">物品狀況（可多選）<div class="inline-group" id="e_status">'+
+          ["技術部","機修","電器","車身","等零件","等外判"].map(v=>'<label><input type="checkbox" value="'+v+'" '+(Array.isArray(it.status)&&it.status.includes(v)?'checked':'')+'/> '+v+'</label>').join('')+
+        '</div></div>'+
+        '<div class="group">地點<div class="inline-group" id="e_location">'+
+          ["場","走","外判"].map(v=>'<label><input type="radio" name="e_location" value="'+v+'" '+(it.location===v?'checked':'')+'/> '+v+'</label>').join('')+
+        '</div></div>'+
+        '<div class="group">轉走日期（選填）<input type="date" id="e_turnGoDate" value="'+(it.turnGoDate||'')+'" '+(it.location==='走'?'':'disabled')+' /></div>'+
+        '<div class="group">種類<div class="inline-group" id="e_type">'+
+          ["垃圾車(大)","垃圾車(細)","巴士仔","TGE","其他"].map(v=>'<label><input type="radio" name="e_type" value="'+v+'" '+(it.type===v?'checked':'')+'/> '+v+'</label>').join('')+
+        '</div></div>'+
+        '<div class="row">'+
+          '<div class="col"><div class="group">部門<div class="inline-group" id="e_department">'+
+            ["機電","食環","懲教","海關","警察","消防"].map(v=>'<label><input type="radio" name="e_department" value="'+v+'" '+(it.department===v?'checked':'')+'/> '+v+'</label>').join('')+
+          '</div></div></div>'+
+          '<div class="col"><div class="group">車身<div class="inline-group" id="e_body">'+
+            ["MAN","新力","其他"].map(v=>'<label><input type="radio" name="e_body" value="'+v+'" '+(it.body===v?'checked':'')+'/> '+v+'</label>').join('')+
+          '</div></div></div>'+
+          '<div class="col"><div class="group">保養<div class="inline-group" id="e_maint">'+
+            ["MAN","報價"].map(v=>'<label><input type="radio" name="e_maintenance" value="'+v+'" '+(it.maintenance===v?'checked':'')+'/> '+v+'</label>').join('')+
+          '</div></div></div>'+
+        '</div>'+
+        '<div class="row">'+
+          '<div class="col"><div class="group">型號<div class="inline-group" id="e_model">'+
+            ["TG2","TG3","其他"].map(v=>'<label><input type="radio" name="e_model" value="'+v+'" '+(it.model===v?'checked':'')+'/> '+v+'</label>').join('')+
+          '</div></div></div>'+
+          '<div class="col"><div class="group">來源（選填）<div class="inline-group" id="e_source">'+
+            ["九龍灣","大埔","威菲","南昌","屯門","葵涌","東涌","其他"].map(v=>'<label><input type="radio" name="e_source" value="'+v+'" '+(it.source===v?'checked':'')+'/> '+v+'</label>').join('')+
+          '</div></div></div>'+
+        '</div>';
+      wrap.appendChild(root);
+      document.getElementById("editModalBackdrop").style.display="flex";
+
+      function updateEditTurnGoEnable(){
+        const input=document.getElementById("e_turnGoDate");
+        const loc=(document.querySelector('input[name="e_location"]:checked')||{}).value||"";
+        if(!input)return;
+        if(loc==="走"){input.disabled=false}else{input.disabled=true;input.value=""}
+      }
+      document.querySelectorAll('input[name="e_location"]').forEach(r=>r.addEventListener("change",updateEditTurnGoEnable));
+      updateEditTurnGoEnable();
+    }
+
+    function closeEditModal(){
+      document.getElementById("editModalBackdrop").style.display="none";
+      editingIndex=null;
+    }
+
+    document.getElementById("editCancelBtn").addEventListener("click",closeEditModal);
+    document.getElementById("editSaveBtn").addEventListener("click",()=>{
+      if(editingIndex===null)return;
+      const items=loadItems();
+      const t=items[editingIndex];
+      const prevLocation=t.location||"";
+      const name=document.getElementById("e_name").value.trim();
+      const date=document.getElementById("e_date").value;
+      const jobNo=document.getElementById("e_jobNo").value.trim();
+      const note=document.getElementById("e_note").value.trim();
+      const status=Array.from(document.querySelectorAll('#e_status input[type="checkbox"]:checked')).map(x=>x.value);
+      const location=(document.querySelector('input[name="e_location"]:checked')||{}).value||"";
+      const type=(document.querySelector('input[name="e_type"]:checked')||{}).value||"";
+      const department=(document.querySelector('input[name="e_department"]:checked')||{}).value||"";
+      const body=(document.querySelector('input[name="e_body"]:checked')||{}).value||"";
+      const maintenance=(document.querySelector('input[name="e_maintenance"]:checked')||{}).value||"";
+      const model=(document.querySelector('input[name="e_model"]:checked')||{}).value||"";
+      const source=(document.querySelector('input[name="e_source"]:checked')||{}).value||"";
+      const eTurnEl=document.getElementById("e_turnGoDate");
+      const eTurnVal=eTurnEl?eTurnEl.value:"";
+      if(!name||!date||!location||!type||!department||!body||!maintenance||!model){alert("請完整選擇必填欄位");return}
+      let newTurnGoDate=t.turnGoDate||"";
+      if(location==="走"){
+        newTurnGoDate = eTurnVal ? eTurnVal : (prevLocation!=="走" && !t.turnGoDate ? todayStr() : t.turnGoDate);
+      }else{
+        newTurnGoDate = "";
+      }
+      t.name=name;t.date=date;t.jobNo=jobNo;t.note=note;t.status=status;t.location=location;t.type=type;t.department=department;t.body=body;t.maintenance=maintenance;t.model=model;t.source=source;t.turnGoDate=newTurnGoDate;
+      saveItems(items);
+      closeEditModal();
+      fullRender();
+    });
+
+    document.addEventListener("DOMContentLoaded",()=>{
+      const t=new Date();const yyyy=t.getFullYear();const mm=String(t.getMonth()+1).padStart(2,"0");const dd=String(t.getDate()).padStart(2,"0");
+      document.getElementById("dateInput").value=`${yyyy}-${mm}-${dd}`;
+      document.getElementById("goDateQuery").value=`${yyyy}-${mm}-${dd}`;
+      updateTurnGoDateInputEnable();
+      fullRender();
+    });
+  </script>
 </body>
 </html>
